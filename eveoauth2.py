@@ -15,10 +15,9 @@
     :copyright: (c) 2015 by Nicola Iarocci.
     :license: BSD, see LICENSE for more details.
 """
-
 from eve import Eve
 from oauth2 import BearerAuth
-from flask.ext.sentinel import ResourceOwnerPasswordCredentials, oauth
+from flask_sentinel import ResourceOwnerPasswordCredentials, oauth
 
 app = Eve(auth=BearerAuth)
 ResourceOwnerPasswordCredentials(app)

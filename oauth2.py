@@ -15,7 +15,8 @@
 from eve.auth import BasicAuth
 from flask import request
 from redis import StrictRedis
-
+import redis
+import os
 
 class BearerAuth(BasicAuth):
     """ Overrides Eve's built-in basic authorization scheme and uses Redis to
@@ -24,7 +25,7 @@ class BearerAuth(BasicAuth):
     def __init__(self):
         super(BearerAuth, self).__init__()
         self.redis = StrictRedis()
-        self.redis.connection_pool = ConnectionPool.from_url(os.environ.get(
+        self.redis.connection_pool = redis.ConnectionPool.from_url(os.environ.get(
             'REDIS_URL',
             'redis://localhost:6379'))
 
