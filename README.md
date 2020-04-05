@@ -9,20 +9,20 @@ using the credentials you created, by replacing placeholders `CLIENT_ID`,
 ```bash
 # Generating a Bearer Token using credentials
 curl 'http://localhost:5000/oauth/token' \
-       --form 'client_id=CLIENT_ID' \
-       --form 'grant_type=password' \
-       --form 'username=USERNAME' \
-       --form 'password=PASSWORD'
+     --form 'client_id=CLIENT_ID' \
+     --form 'grant_type=password' \
+     --form 'username=USERNAME' \
+     --form 'password=PASSWORD'
 
 # Generating a bearer token Using a retrieved refresh token
 curl 'http://localhost:5000/oauth/token' \
-       --form 'client_id=CLIENT_ID' \
-       --form 'grant_type=refresh_token' \
-       --form 'refresh_token=MLMMegAY29kxDydSq2NEGYQHqQPGyE'
+     --form 'client_id=CLIENT_ID' \
+     --form 'grant_type=refresh_token' \
+     --form 'refresh_token=MLMMegAY29kxDydSq2NEGYQHqQPGyE'
 
 # Accessing a protected resource using retrieved bearer token
 curl 'http://localhost:5000/people?pretty' \
-       --header 'Authorization: Bearer Q6ivNZLQ67cj3Z8VgAzUZ8y8YhqDiX'
+     --header 'Authorization: Bearer Q6ivNZLQ67cj3Z8VgAzUZ8y8YhqDiX'
 ```
 
 # Eve-OAuth2
