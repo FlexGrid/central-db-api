@@ -1,0 +1,13 @@
+[Unit]
+Description=uWSGI instance to serve eveoauth2
+After=network.target
+
+[Service]
+User=dss
+Group=www-data
+WorkingDirectory=/home/dss/flexgrid/eve-oauth2
+Environment="PATH=/home/dss/flexgrid/eve-oauth2/eveoauth2env/bin"
+ExecStart=/home/dss/flexgrid/eve-oauth2/eveoauth2env/bin/uwsgi --ini eveoauth2.ini
+
+[Install]
+WantedBy=multi-user.target
