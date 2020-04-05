@@ -156,3 +156,6 @@ pyvenv.cfg
 .venv
 pip-selfcheck.json
 *.whl
+
+# VScode files
+.vscode/

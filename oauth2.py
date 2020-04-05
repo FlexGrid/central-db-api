@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 """
     A demostration of a simple BearerToken class.
 
@@ -18,6 +17,7 @@ from redis import StrictRedis
 import redis
 import os
 
+
 class BearerAuth(BasicAuth):
     """ Overrides Eve's built-in basic authorization scheme and uses Redis to
     validate bearer token
@@ -25,9 +25,8 @@ class BearerAuth(BasicAuth):
     def __init__(self):
         super(BearerAuth, self).__init__()
         self.redis = StrictRedis()
-        self.redis.connection_pool = redis.ConnectionPool.from_url(os.environ.get(
-            'REDIS_URL',
-            'redis://localhost:6379'))
+        self.redis.connection_pool = redis.ConnectionPool.from_url(
+            os.environ.get('REDIS_URL', 'redis://localhost:6379'))
 
     def check_auth(self, token, allowed_roles, resource, method):
         """ Check if API request is authorized.

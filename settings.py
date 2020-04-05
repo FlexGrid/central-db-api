@@ -28,8 +28,12 @@ schema = {
     'location': {
         'type': 'dict',
         'schema': {
-            'address': {'type': 'string'},
-            'city': {'type': 'string'}
+            'address': {
+                'type': 'string'
+            },
+            'city': {
+                'type': 'string'
+            }
         },
     },
     'born': {
@@ -57,7 +61,6 @@ people = {
 
     # most global settings can be overridden at resource level
     'resource_methods': ['GET', 'POST'],
-
     'schema': schema
 }
 
@@ -93,7 +96,6 @@ RESOURCE_METHODS = ['GET', 'POST', 'DELETE']
 # Enable reads (GET), edits (PATCH), replacements (PUT) and deletes of
 # individual items  (defaults to read-only item access).
 ITEM_METHODS = ['GET', 'PATCH', 'PUT', 'DELETE']
-
 
 # Default prefix for OAuth endpoints. Defaults to /oauth. Prepends both token and management urls.
 #SENTINEL_ROUTE_PREFIX = '/oauth'

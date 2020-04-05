@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 """
     Eve Demo (Secured)
     ~~~~~~~~~~~~~~~~~~
@@ -27,6 +26,7 @@ ResourceOwnerPasswordCredentials(app)
 @oauth.require_oauth()
 def restricted_access():
     return "You made it through and accessed the protected resource!"
+
 
 if __name__ == '__main__':
     app.run()
