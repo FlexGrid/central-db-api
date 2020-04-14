@@ -70,23 +70,32 @@ DOMAIN = {'people': people}
 
 # Please note that MONGO_HOST and MONGO_PORT could very well be left
 # out as they already default to a bare bones local 'mongod' instance.
-SENTINEL_MONGO_HOST = 'localhost'
-MONGO_HOST = 'localhost'
-SENTINEL_MONGO_PORT = 27017
-MONGO_PORT = 27017
+# SENTINEL_MONGO_HOST = 'db.flexgrid-project.eu'
+# MONGO_HOST = 'db.flexgrid-project.eu'
+# SENTINEL_MONGO_PORT = 27017
+# MONGO_PORT = 27017
 
 # Skip this block if your db has no auth. But it really should.
-SENTINEL_MONGO_USERNAME = os.getenv("SENTINEL_MONGO_USERNAME")
-MONGO_USERNAME = os.getenv("MONGO_USERNAME")
-SENTINEL_MONGO_PASSWORD = os.getenv("SENTINEL_MONGO_PASSWORD")
-MONGO_PASSWORD = os.getenv("MONGO_PASSWORD")
+# SENTINEL_MONGO_USERNAME = os.getenv("SENTINEL_MONGO_USERNAME")
+# MONGO_USERNAME = os.getenv("MONGO_USERNAME")
+# SENTINEL_MONGO_PASSWORD = os.getenv("SENTINEL_MONGO_PASSWORD")
+# MONGO_PASSWORD = os.getenv("MONGO_PASSWORD")
 # Name of the database on which the user can be authenticated,
 # needed if --auth mode is enabled.
-SENTINEL_MONGO_AUTH_SOURCE = 'admin'
-MONGO_AUTH_SOURCE = 'flexgrid_main'
+# SENTINEL_MONGO_AUTH_SOURCE = 'admin'
+# MONGO_AUTH_SOURCE = 'flexgrid_main'
 
-SENTINEL_MONGO_DBNAME = 'apiusers'
-MONGO_DBNAME = 'flexgrid_main'
+# SENTINEL_MONGO_DBNAME = 'apiusers'
+# MONGO_DBNAME = 'flexgrid_main'
+
+# MONGO_URI = f'mongodb://{os.getenv("MONGO_USERNAME")}:{os.getenv("MONGO_PASSWORD")}@db.flexgrid-project.eu/flexgrid_main?ssl=true&ssl_cert_reqs=CERT_NONE&authSource=flexgrid_main'
+# SENTINEL_MONGO_URI = f'mongodb://{os.getenv("SENTINEL_MONGO_USERNAME")}:{os.getenv("SENTINEL_MONGO_PASSWORD")}@db.flexgrid-project.eu/apiusers?ssl=true&ssl_cert_reqs=CERT_NONE&authSource=admin'
+
+MONGO_URI = f'mongodb://{os.getenv("MONGO_USERNAME")}:{os.getenv("MONGO_PASSWORD")}@db.flexgrid-project.eu/flexgrid_main?ssl=true&authSource=flexgrid_main'
+SENTINEL_MONGO_URI = f'mongodb://{os.getenv("SENTINEL_MONGO_USERNAME")}:{os.getenv("SENTINEL_MONGO_PASSWORD")}@db.flexgrid-project.eu/apiusers?ssl=true&authSource=admin'
+
+MONGODB_CONNECT = False
+SENTINEL_MONGODB_CONNECT = False
 
 # Enable reads (GET), inserts (POST) and DELETE for resources/collections
 # (if you omit this line, the API will default to ['GET'] and provide

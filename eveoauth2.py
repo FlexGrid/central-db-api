@@ -21,7 +21,6 @@ from flask_sentinel import ResourceOwnerPasswordCredentials, oauth
 app = Eve(auth=BearerAuth)
 ResourceOwnerPasswordCredentials(app)
 
-
 @app.route('/endpoint')
 @oauth.require_oauth()
 def restricted_access():
