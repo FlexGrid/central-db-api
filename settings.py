@@ -64,7 +64,139 @@ people = {
     'schema': schema
 }
 
-DOMAIN = {'people': people}
+dp_schema = {
+  'time_stamp': {
+    'type': 'ISODate',
+  },
+  '_id': {
+    'type': 'string',
+  },
+  'prosumer_id': {
+    'type': 'number',
+  },
+  'acpower_kw': {
+    'type': 'number',
+  },
+  'acpower_w': {
+    'type': 'number',
+  },
+  'acpower2_kw': {
+    'type': 'number',
+  },
+  'acpower2_w': {
+    'type': 'number',
+  },
+  'grid_feed_in_kw': {
+    'type': 'number',
+  },
+  'grid_feed_in_w': {
+    'type': 'number',
+  },
+  'grid_consumption_kw': {
+    'type': 'number',
+  },
+  'grid_consumption_w': {
+    'type': 'number',
+  },
+  'acvoltage_phase_l1_v': {
+    'type': 'number',
+  },
+  'acvoltage_phase_l12_v': {
+    'type': 'number',
+  },
+  'acvoltage_phase_l2_v': {
+    'type': 'number',
+  },
+  'acvoltage_phase2_l2_v': {
+    'type': 'number',
+  },
+  'acvoltage_phase_l22_v': {
+    'type': 'number',
+  },
+  'acvoltage_phase_l32_v': {
+    'type': 'number',
+  },
+  'acvoltage_phase_l3_v': {
+    'type': 'number',
+  },
+  'acgrid_frequency_hz': {
+    'type': 'number',
+  },
+  'acgrid_frequency2_hz': {
+    'type': 'number',
+  },
+  'dcpower_input_a_kw': {
+    'type': 'number',
+  },
+  'dcpower_input_a_w': {
+    'type': 'number',
+  },
+  'dcpower_input_b_kw': {
+    'type': 'number',
+  },
+  'dcpower_input_b_w': {
+    'type': 'number',
+  },
+  'dcvoltage_input_a_v': {
+    'type': 'number',
+  },
+  'dcvoltage_input_b_v': {
+    'type': 'number',
+  },
+  'dccurrent_input_a_a': {
+    'type': 'number',
+  },
+  'dccurrent_input_b_a': {
+    'type': 'number',
+  },
+  'insulation_resistance': {
+    'type': 'number',
+  },
+  'insulation_resistance2': {
+    'type': 'number',
+  },
+  'battery_charge_kw': {
+    'type': 'number',
+  },
+  'battery_charge_w': {
+    'type': 'number',
+  },
+  'battery_discharge_kw': {
+    'type': 'number',
+  },
+  'battery_discharge_w': {
+    'type': 'number',
+  },
+  'accurrent_phase_l1_a': {
+    'type': 'number',
+  },
+  'accurrent_phase_l2_a': {
+    'type': 'number',
+  },
+  'accurrent_phase_l3_a': {
+    'type': 'number',
+  },
+  'battery_charging_w': {
+    'type': 'number',
+  },
+  'battery_discharging_w': {
+    'type': 'number',
+  },
+  'soc': {
+    'type': 'number',
+  }
+}
+
+data_points = {
+    # We choose to override global cache-control directives for this resource.
+    'cache_control': 'max-age=10,must-revalidate',
+    'cache_expires': 10,
+    'schema': dp_schema,
+}
+
+DATE_FORMAT = '%Y-%m-%dT%H:%M:%S'
+
+DOMAIN = {'data_points': data_points}
 
 # Let's just use the local mongod instance. Edit as needed.
 
