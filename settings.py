@@ -226,9 +226,68 @@ data_points_aggr = {
             'pipeline': [
                 {
                     "$match": {
-                        "time_stamp": {
-                            "$gte": "$start",
-                            "$lte": "$end",
+                        "$expr": {
+                            "$and": [{
+                                "$gte": [
+                                    {
+                                        "$toLong": "$time_stamp"
+                                    },
+                                    {
+                                        "$subtract": [
+                                            {
+                                                "$toLong": "$start",
+                                            },
+                                            {
+                                                "$mod": [
+                                                    {
+                                                        "$subtract": [
+                                                            {
+                                                                "$toLong":
+                                                                "$start",
+                                                            },
+                                                            1,
+                                                        ],
+                                                    },
+                                                    {
+                                                        "$multiply":
+                                                        [1000, "$interval"]
+                                                    },
+                                                ],
+                                            },
+                                        ],
+                                    },
+                                ]
+                            }, {
+                                "$lte": [
+                                    {
+                                        "$toLong": "$time_stamp"
+                                    },
+                                    {
+                                        "$subtract": [
+                                            {
+                                                "$toLong": "$end",
+                                            },
+                                            {
+                                                "$mod": [
+                                                    {
+                                                        "$add": [
+                                                            {
+                                                                "$toLong":
+                                                                "$end",
+                                                            },
+                                                            0,
+                                                        ],
+                                                    },
+                                                    {
+                                                        "$multiply":
+                                                        [1000, "$interval"]
+                                                    },
+                                                ],
+                                            },
+                                        ],
+                                    },
+                                ]
+                            }],
                         },
                         "prosumer_id": {
                             "$in": "$prosumer"
