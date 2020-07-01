@@ -22,40 +22,95 @@ from eve_swagger import swagger, add_documentation
 app = Eve(auth=BearerAuth)
 ResourceOwnerPasswordCredentials(app)
 
+
 @app.route('/endpoint')
 @oauth.require_oauth()
 def restricted_access():
     return "You made it through and accessed the protected resource!"
 
+
 app.register_blueprint(swagger)
 # required. See http://swagger.io/specification/#infoObject for details.
 app.config['SWAGGER_INFO'] = {
-    'title': 'My Supercool API',
+    'title': 'Flexgrid DataBase API',
     'version': '1.0',
-    'description': 'an API description',
+    'description': 'The central repository of the flexgrid project',
     'termsOfService': 'my terms of service',
     'contact': {
-        'name': 'nicola',
-        'url': 'http://nicolaiarocci.com'
+        'name': 'Dimitros J. Vergados',
+        'url': 'https://flexgrid-project.eu'
     },
     'license': {
         'name': 'BSD',
         'url': 'https://github.com/pyeve/eve-swagger/blob/master/LICENSE',
     },
-    'schemes': ['http', 'https'],
+    'schemes': ['https']
 }
 
+app.config['SWAGGER_EXAMPLE_FIELD_REMOVE'] = True
 
 # optional. Add/Update elements in the documentation at run-time without deleting subtrees.
-add_documentation({'paths': {'/status': {'get': {'parameters': [
-    {
-        'in': 'query',
-        'name': 'foobar',
-        'required': False,
-        'description': 'special query parameter',
-        'type': 'string'
-    }]
-}}}})
+add_documentation({
+    'paths': {
+        '/data_points_aggr': {
+            'get': {
+                'parameters': [{
+                    'in': 'query',
+                    'name': 'aggregate',
+                    'required': True,
+                    'description':
+                    'JSON with the values like this: `{"$start": "2017-07-11T19:05:00","$end":"2017-07-11T22:00:01", "$prosumer_ids": ["5ee8e1fc00871cbb09d9fdf8", "5ee8e0fa00871cbb09d9fdc0"], "$interval": 3600}`',
+                    'type': 'string'
+                }]
+            }
+        }
+    }
+})
+
+add_documentation({
+    'securityDefinitions': {
+        "MyTokenAuth": {
+            'type': 'oauth2',
+            'flow': 'password',
+            'tokenUrl': 'https://db.flexgrid-project.eu/oauth/token',
+        }
+    }
+})
+# iterate over all resources and items and add security
+for resource, rd in app.config['DOMAIN'].items():
+    if (rd.get('disable_documentation') or resource.endswith('_versions')):
+        continue
+
+    methods = rd['resource_methods']
+    url = '/%s' % rd['url']
+    for method in methods:
+        add_documentation({
+            'paths': {
+                url: {
+                    method.lower(): {
+                        "security": [{
+                            "MyTokenAuth": []
+                        }]
+                    }
+                }
+            }
+        })
+
+    methods = rd['item_methods']
+    item_id = '%sId' % rd['item_title'].lower()
+    url = '/%s/{%s}' % (rd['url'], item_id)
+    for method in methods:
+        add_documentation({
+            'paths': {
+                url: {
+                    method.lower(): {
+                        "security": [{
+                            "MyTokenAuth": []
+                        }]
+                    }
+                }
+            }
+        })
 
 if __name__ == '__main__':
     app.run()

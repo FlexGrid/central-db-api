@@ -4,71 +4,11 @@ from dotenv import load_dotenv
 load_dotenv(verbose=True)
 from bson import ObjectId
 
-schema = {
-    # Schema definition, based on Cerberus grammar. Check the Cerberus project
-    # (https://github.com/pyeve/cerberus) for details.
-    'firstname': {
-        'type': 'string',
-        'minlength': 1,
-        'maxlength': 10,
-    },
-    'lastname': {
-        'type': 'string',
-        'minlength': 1,
-        'maxlength': 15,
-        'required': True,
-        # talk about hard constraints! For the purpose of the demo
-        # 'lastname' is an API entry-point, so we need it to be unique.
-        'unique': True,
-    },
-    # 'role' is a list, and can only contain values from 'allowed'.
-    'role': {
-        'type': 'list',
-        'allowed': ["author", "contributor", "copy"],
-    },
-    # An embedded 'strongly-typed' dictionary.
-    'location': {
-        'type': 'dict',
-        'schema': {
-            'address': {
-                'type': 'string'
-            },
-            'city': {
-                'type': 'string'
-            }
-        },
-    },
-    'born': {
-        'type': 'datetime',
-    },
-}
-
-people = {
-    # 'title' tag used in item links. Defaults to the resource title minus
-    # the final, plural 's' (works fine in most cases but not for 'people')
-    'item_title': 'person',
-
-    # by default the standard item entry point is defined as
-    # '/people/<ObjectId>'. We leave it untouched, and we also enable an
-    # additional read-only entry point. This way consumers can also perform
-    # GET requests at '/people/<lastname>'.
-    'additional_lookup': {
-        'url': 'regex("[\w]+")',
-        'field': 'lastname'
-    },
-
-    # We choose to override global cache-control directives for this resource.
-    'cache_control': 'max-age=10,must-revalidate',
-    'cache_expires': 10,
-
-    # most global settings can be overridden at resource level
-    'resource_methods': ['GET', 'POST'],
-    'schema': schema
-}
+prosumer_schema = {}
 
 dp_schema = {
     'time_stamp': {
-        'type': 'ISODate',
+        'type': 'string',
     },
     '_id': {
         'type': 'string',
@@ -194,34 +134,47 @@ data_points = {
     'cache_control': 'max-age=10,must-revalidate',
     'cache_expires': 10,
     'schema': dp_schema,
-    'aggregation': {
-        'pipeline': [{
-            "$match": {
-                "_updated": {
-                    "$gte": "$upd"
-                }
-            }
-        }, {
-            "$group": {
-                "_id": '$Hashtag',
-                "count": {
-                    "$sum": 1
-                }
-            }
-        }, {
-            "$sort": {
-                "count": -1
-            }
-        }, {
-            "$limit": 10
-        }]
-    }
+    'resource_methods': ['GET', 'POST'],
+    'item_methods': ['GET', 'PATCH', 'PUT', 'DELETE'],
+}
+
+prosumers = {
+    # We choose to override global cache-control directives for this resource.
+    'cache_control': 'max-age=10,must-revalidate',
+    'cache_expires': 10,
+    'schema': prosumer_schema,
+    'resource_methods': ['GET', 'POST'],
+    'item_methods': ['GET', 'PATCH', 'PUT', 'DELETE'],
 }
 
 data_points_aggr = {
+    'schema': {
+        "_id": {
+            'type': 'object',
+            'schema': {
+                "prosumer_id": {
+                    'example': "5ee8e0fa00871cbb09d9fdc0",
+                    'type': 'string',
+                    'minlength': 1,
+                },
+                "date": {
+                    'example': "2017-07-11T20:00:00",
+                    'type': 'string',
+                    'minlength': 1,
+                }
+            }
+        },
+        "consumption": {
+            'example': '7.25',
+            'type': 'number',
+            'minlength': 1,
+        }
+    },
     'datasource': {
         'source': 'data_points',
         'query_objectid_as_string': True,
+        'resource_methods': ['GET'],
+        'item_methods': [],
         'aggregation': {
             'pipeline': [
                 {
@@ -290,7 +243,7 @@ data_points_aggr = {
                             }],
                         },
                         "prosumer_id": {
-                            "$in": "$prosumer"
+                            "$in": "$prosumer_ids"
                         }
                     },
                 },
@@ -345,7 +298,11 @@ data_points_aggr = {
 
 DATE_FORMAT = '%Y-%m-%dT%H:%M:%S'
 
-DOMAIN = {'data_points': data_points, 'data_points_aggr': data_points_aggr}
+DOMAIN = {
+    'prosumers': prosumers,
+    'data_points': data_points,
+    'data_points_aggr': data_points_aggr
+}
 
 # Let's just use the local mongod instance. Edit as needed.
 
@@ -381,11 +338,12 @@ SENTINEL_MONGODB_CONNECT = False
 # Enable reads (GET), inserts (POST) and DELETE for resources/collections
 # (if you omit this line, the API will default to ['GET'] and provide
 # read-only access to the endpoint).
-RESOURCE_METHODS = ['GET', 'POST', 'DELETE']
+# RESOURCE_METHODS = ['GET', 'POST', 'DELETE']
 
 # Enable reads (GET), edits (PATCH), replacements (PUT) and deletes of
 # individual items  (defaults to read-only item access).
-ITEM_METHODS = ['GET', 'PATCH', 'PUT', 'DELETE']
+# ITEM_METHODS = ['GET', 'PATCH', 'PUT', 'DELETE']
+ITEM_METHODS = []
 
 # Default prefix for OAuth endpoints. Defaults to /oauth. Prepends both token and management urls.
 #SENTINEL_ROUTE_PREFIX = '/oauth'
