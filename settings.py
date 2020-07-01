@@ -14,7 +14,7 @@ dp_schema = {
         'type': 'string',
     },
     'prosumer_id': {
-        'type': 'number',
+        'type': 'string',
     },
     'acpower_kw': {
         'type': 'number',
@@ -129,6 +129,13 @@ dp_schema = {
     }
 }
 
+avg_term = {
+    f"{k}_aggr": {
+        "$avg": f"${k}"
+    }
+    for k, v in dp_schema.items() if v['type'] == 'number'
+}
+
 data_points = {
     # We choose to override global cache-control directives for this resource.
     'cache_control': 'max-age=10,must-revalidate',
@@ -164,11 +171,191 @@ data_points_aggr = {
                 }
             }
         },
-        "consumption": {
+        "acpower_kw_aggr": {
             'example': '7.25',
             'type': 'number',
             'minlength': 1,
-        }
+        },
+        "acpower_w_aggr": {
+            'example': '7.25',
+            'type': 'number',
+            'minlength': 1,
+        },
+        "acpower2_kw_aggr": {
+            'example': '7.25',
+            'type': 'number',
+            'minlength': 1,
+        },
+        "acpower2_w_aggr": {
+            'example': '7.25',
+            'type': 'number',
+            'minlength': 1,
+        },
+        "grid_feed_in_kw_aggr": {
+            'example': '7.25',
+            'type': 'number',
+            'minlength': 1,
+        },
+        "grid_feed_in_w_aggr": {
+            'example': '7.25',
+            'type': 'number',
+            'minlength': 1,
+        },
+        "grid_consumption_kw_aggr": {
+            'example': '7.25',
+            'type': 'number',
+            'minlength': 1,
+        },
+        "grid_consumption_w_aggr": {
+            'example': '7.25',
+            'type': 'number',
+            'minlength': 1,
+        },
+        "acvoltage_phase_l1_v_aggr": {
+            'example': '7.25',
+            'type': 'number',
+            'minlength': 1,
+        },
+        "acvoltage_phase_l12_v_aggr": {
+            'example': '7.25',
+            'type': 'number',
+            'minlength': 1,
+        },
+        "acvoltage_phase_l2_v_aggr": {
+            'example': '7.25',
+            'type': 'number',
+            'minlength': 1,
+        },
+        "acvoltage_phase2_l2_v_aggr": {
+            'example': '7.25',
+            'type': 'number',
+            'minlength': 1,
+        },
+        "acvoltage_phase_l22_v_aggr": {
+            'example': '7.25',
+            'type': 'number',
+            'minlength': 1,
+        },
+        "acvoltage_phase_l32_v_aggr": {
+            'example': '7.25',
+            'type': 'number',
+            'minlength': 1,
+        },
+        "acvoltage_phase_l3_v_aggr": {
+            'example': '7.25',
+            'type': 'number',
+            'minlength': 1,
+        },
+        "acgrid_frequency_hz_aggr": {
+            'example': '7.25',
+            'type': 'number',
+            'minlength': 1,
+        },
+        "acgrid_frequency2_hz_aggr": {
+            'example': '7.25',
+            'type': 'number',
+            'minlength': 1,
+        },
+        "dcpower_input_a_kw_aggr": {
+            'example': '7.25',
+            'type': 'number',
+            'minlength': 1,
+        },
+        "dcpower_input_a_w_aggr": {
+            'example': '7.25',
+            'type': 'number',
+            'minlength': 1,
+        },
+        "dcpower_input_b_kw_aggr": {
+            'example': '7.25',
+            'type': 'number',
+            'minlength': 1,
+        },
+        "dcpower_input_b_w_aggr": {
+            'example': '7.25',
+            'type': 'number',
+            'minlength': 1,
+        },
+        "dcvoltage_input_a_v_aggr": {
+            'example': '7.25',
+            'type': 'number',
+            'minlength': 1,
+        },
+        "dcvoltage_input_b_v_aggr": {
+            'example': '7.25',
+            'type': 'number',
+            'minlength': 1,
+        },
+        "dccurrent_input_a_a_aggr": {
+            'example': '7.25',
+            'type': 'number',
+            'minlength': 1,
+        },
+        "dccurrent_input_b_a_aggr": {
+            'example': '7.25',
+            'type': 'number',
+            'minlength': 1,
+        },
+        "insulation_resistance_aggr": {
+            'example': '7.25',
+            'type': 'number',
+            'minlength': 1,
+        },
+        "insulation_resistance2_aggr": {
+            'example': '7.25',
+            'type': 'number',
+            'minlength': 1,
+        },
+        "battery_charge_kw_aggr": {
+            'example': '7.25',
+            'type': 'number',
+            'minlength': 1,
+        },
+        "battery_charge_w_aggr": {
+            'example': '7.25',
+            'type': 'number',
+            'minlength': 1,
+        },
+        "battery_discharge_kw_aggr": {
+            'example': '7.25',
+            'type': 'number',
+            'minlength': 1,
+        },
+        "battery_discharge_w_aggr": {
+            'example': '7.25',
+            'type': 'number',
+            'minlength': 1,
+        },
+        "accurrent_phase_l1_a_aggr": {
+            'example': '7.25',
+            'type': 'number',
+            'minlength': 1,
+        },
+        "accurrent_phase_l2_a_aggr": {
+            'example': '7.25',
+            'type': 'number',
+            'minlength': 1,
+        },
+        "accurrent_phase_l3_a_aggr": {
+            'example': '7.25',
+            'type': 'number',
+            'minlength': 1,
+        },
+        "battery_charging_w_aggr": {
+            'example': '7.25',
+            'type': 'number',
+            'minlength': 1,
+        },
+        "battery_discharging_w_aggr": {
+            'example': '7.25',
+            'type': 'number',
+            'minlength': 1,
+        },
+        "soc_aggr": {
+            'example': '7.25',
+            'type': 'number',
+            'minlength': 1,
+        },
     },
     'datasource': {
         'source': 'data_points',
@@ -249,40 +436,43 @@ data_points_aggr = {
                 },
                 {
                     "$group": {
-                        "_id": {
-                            "prosumer_id": "$prosumer_id",
-                            "date": {
-                                "$toDate": {
-                                    "$add": [{
-                                        "$subtract": [
-                                            {
-                                                "$toLong": "$time_stamp"
-                                            },
-                                            {
-                                                "$mod": [
-                                                    {
-                                                        "$subtract": [{
-                                                            "$toLong":
-                                                            "$time_stamp"
-                                                        }, 1]
-                                                    },
-                                                    {
-                                                        "$multiply":
-                                                        [1000, "$interval"]
-                                                    },
-                                                ],
-                                            },
-                                        ],
-                                    }, {
-                                        "$subtract": [{
-                                            "$multiply": [1000, "$interval"]
-                                        }, 1]
-                                    }],
+                        **{
+                            "_id": {
+                                "prosumer_id": "$prosumer_id",
+                                "date": {
+                                    "$toDate": {
+                                        "$add": [{
+                                            "$subtract": [
+                                                {
+                                                    "$toLong": "$time_stamp"
+                                                },
+                                                {
+                                                    "$mod": [
+                                                        {
+                                                            "$subtract": [{
+                                                                "$toLong":
+                                                                "$time_stamp"
+                                                            }, 1]
+                                                        },
+                                                        {
+                                                            "$multiply": [
+                                                                1000, "$interval"
+                                                            ]
+                                                        },
+                                                    ],
+                                                },
+                                            ],
+                                        }, {
+                                                     "$subtract": [{
+                                                         "$multiply": [
+                                                             1000, "$interval"
+                                                         ]
+                                                     }, 1]
+                                                 }],
+                                    },
                                 },
                             },
-                        },
-                        "consumption": {
-                            "$avg": "$grid_consumption_w"
+                            **avg_term
                         },
                     },
                 },
