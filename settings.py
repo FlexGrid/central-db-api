@@ -491,7 +491,7 @@ DATE_FORMAT = '%Y-%m-%dT%H:%M:%S'
 DOMAIN = {
     'prosumers': prosumers,
     'data_points': data_points,
-    'data_points_aggr': data_points_aggr
+    'data_points_aggr': data_points_aggr,
 }
 
 # Let's just use the local mongod instance. Edit as needed.
@@ -564,3 +564,5 @@ SENTINEL_MANAGEMENT_PASSWORD = os.getenv("SENTINEL_MANAGEMENT_PASSWORD")
 
 # You can also configure the error page uri with an endpoint name.
 #OAUTH2_PROVIDER_ERROR_ENDPOINT =
+
+PAGINATION_LIMIT=10000

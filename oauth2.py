@@ -16,7 +16,7 @@ from flask import request
 from redis import StrictRedis
 import redis
 import os
-
+from flask import g
 
 class BearerAuth(BasicAuth):
     """ Overrides Eve's built-in basic authorization scheme and uses Redis to
@@ -39,6 +39,7 @@ class BearerAuth(BasicAuth):
         :param resource: Resource being requested.
         :param method: HTTP method being executed (POST, GET, etc.)
         """
+        print(f"We got: token={token}, allowed_roles={allowed_roles}, resource={resource}, method={method}, user={self.redis.get(token)}")
         return token and self.redis.get(token)
 
     def authorized(self, allowed_roles, resource, method):
