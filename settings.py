@@ -126,7 +126,23 @@ dp_schema = {
     },
     'soc': {
         'type': 'number',
+    },
+    'charger_consumption_w': {
+        'type': 'number',
+    },
+    'charger_feed_in_w': {
+        'type': 'number',
+    },
+    'charger_consumption_kwh': {
+        'type': 'number',
+    },
+    'charger_feed_in_kwh': {
+        'type': 'number',
+    },
+    'charger_soc': {
+        'type': 'number',
     }
+
 }
 
 avg_term = {
@@ -352,6 +368,21 @@ data_points_aggr = {
             'minlength': 1,
         },
         "soc_aggr": {
+            'example': '7.25',
+            'type': 'number',
+            'minlength': 1,
+        },
+         "charder_consumption_w_aggr": {
+            'example': '7.25',
+            'type': 'number',
+            'minlength': 1,
+        },
+         "charger_feed_in_w_aggr": {
+            'example': '7.25',
+            'type': 'number',
+            'minlength': 1,
+        },
+         "charger_soc_aggr_aggr": {
             'example': '7.25',
             'type': 'number',
             'minlength': 1,
