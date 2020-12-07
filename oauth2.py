@@ -39,8 +39,12 @@ class BearerAuth(BasicAuth):
         :param resource: Resource being requested.
         :param method: HTTP method being executed (POST, GET, etc.)
         """
-        print(f"We got: token={token}, allowed_roles={allowed_roles}, resource={resource}, method={method}, user={self.redis.get(token)}")
-        return token and self.redis.get(token)
+        user = self.redis.get(token)
+        print(f"We got: token={token}, allowed_roles={allowed_roles}, resource={resource}, method={method}, user={user}")
+        if resource in ['prosumers', 'data_points', 'data_points_aggr']:
+          return token and user
+        elif resource == 'atp':
+          return token and method == 'post' and user == b'5e95ba9d85575d046d807d0e'
 
     def authorized(self, allowed_roles, resource, method):
         """ Validates the the current request is allowed to pass through.

@@ -18,9 +18,23 @@ from eve import Eve
 from oauth2 import BearerAuth
 from flask_sentinel import ResourceOwnerPasswordCredentials, oauth
 from eve_swagger import swagger, add_documentation
+import redis
+from flask import request
 
 app = Eve(auth=BearerAuth)
 ResourceOwnerPasswordCredentials(app)
+
+@app.route('/authorization/')
+def check_token():
+    print(f"The app is {app.auth}")
+    if app.auth.check_auth(
+        request.args.get('token', default = None, type = str),
+        [],
+        request.args.get('resource', default = '/', type = str),
+        request.args.get('method', default = 'get', type = str)):
+      return "OK"
+    else:
+      return "Unauthorized"
 
 
 @app.route('/endpoint')
