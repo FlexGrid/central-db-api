@@ -42,7 +42,6 @@ def check_token():
 def restricted_access():
     return "You made it through and accessed the protected resource!"
 
-
 app.register_blueprint(swagger)
 # required. See http://swagger.io/specification/#infoObject for details.
 app.config['SWAGGER_INFO'] = {

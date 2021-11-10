@@ -6,6 +6,35 @@ from bson import ObjectId
 
 prosumer_schema = {}
 
+dr_prosumer_schema = {
+    'name': {
+        'type': 'string',
+    },
+    'devices': {
+        'type': 'dict',
+        'schema': {
+            'shiftable': {
+                'type': 'list',
+                'schema': {
+                    'type': 'dict',
+                    'schema': {
+                        'name': {'type': 'string'},
+                        'consumption': {
+                            'type': 'dict',
+                            'schema': {
+                                'timestamp': {'type': 'datetime'},
+                                'kw': {'type': 'float'}
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+}
+
+
 dp_schema = {
     'time_stamp': {
         'type': 'string',
@@ -494,17 +523,17 @@ data_points_aggr = {
                                                 },
                                             ],
                                         }, {
-                                                     "$subtract": [{
-                                                         "$multiply": [
-                                                             1000, "$interval"
-                                                         ]
-                                                     }, 1]
-                                                 }],
+                                                "$subtract": [{
+                                                    "$multiply": [
+                                                        1000, "$interval"
+                                                    ]
+                                                }, 1]
+                                            }],
                                     },
                                 },
                             },
-                            **avg_term
-                        },
+                            
+                        },**avg_term
                     },
                 },
                 {
@@ -550,8 +579,8 @@ DOMAIN = {
 # MONGO_URI = f'mongodb://{os.getenv("MONGO_USERNAME")}:{os.getenv("MONGO_PASSWORD")}@db.flexgrid-project.eu/flexgrid_main?ssl=true&ssl_cert_reqs=CERT_NONE&authSource=flexgrid_main'
 # SENTINEL_MONGO_URI = f'mongodb://{os.getenv("SENTINEL_MONGO_USERNAME")}:{os.getenv("SENTINEL_MONGO_PASSWORD")}@db.flexgrid-project.eu/apiusers?ssl=true&ssl_cert_reqs=CERT_NONE&authSource=admin'
 
-MONGO_URI = f'mongodb://{os.getenv("MONGO_USERNAME")}:{os.getenv("MONGO_PASSWORD")}@db.flexgrid-project.eu/flexgrid_main?ssl=true&authSource=flexgrid_main'
-SENTINEL_MONGO_URI = f'mongodb://{os.getenv("SENTINEL_MONGO_USERNAME")}:{os.getenv("SENTINEL_MONGO_PASSWORD")}@db.flexgrid-project.eu/apiusers?ssl=true&authSource=admin'
+MONGO_URI = os.getenv("MONGO_URI")
+SENTINEL_MONGO_URI = os.getenv("SENTINEL_MONGO_URI")
 
 MONGODB_CONNECT = False
 SENTINEL_MONGODB_CONNECT = False
