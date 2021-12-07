@@ -1,10 +1,12 @@
 import requests
 import json
-
+import os
+from dotenv import load_dotenv
+load_dotenv(verbose=True)
 
 class RestClient:
     def __init__(self):
-        self.base_url = "http://localhost:5000"
+        self.base_url = os.getenv("BASE_URL")
         self.token = None
 
     def auth(self):
@@ -14,10 +16,10 @@ class RestClient:
         url = f"{self.base_url}/oauth/token"
 
         payload = {
-            'client_id': '***REMOVED***',
+            'client_id': os.getenv('CLIENT_ID'),
             'grant_type': 'password',
-            'username': 'test123',
-            'password': '***REMOVED***'
+            'username': os.getenv('USER_NAME'),
+            'password': os.getenv('PASSWORD')
         }
 
         files = []
