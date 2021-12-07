@@ -10,20 +10,104 @@ dr_prosumer_schema = {
     'name': {
         'type': 'string',
     },
-    'devices': {
-        'type': 'dict',
+    'flexibility_level': {
+        "allowed": ["Low", "Medium", "High"],
+        "required": True
+    },
+    'curtailable_load': {
+        'type': 'list',
         'schema': {
-            'shiftable': {
-                'type': 'list',
-                'schema': {
-                    'type': 'dict',
+            'type': 'dict',
+            'schema': {
+                'timestamp': {
+                    'type': 'string',
+                    'is_iso_8601': True
+                },
+                'desired_consumption_kw': {
+                    'type': 'float'
+                },
+                'base_load_kw': {
+                    'type': 'float'
+                },
+                'flexibility': {
+                    'type': 'list',
                     'schema': {
-                        'name': {'type': 'string'},
-                        'consumption': {
-                            'type': 'dict',
-                            'schema': {
-                                'timestamp': {'type': 'datetime'},
-                                'kw': {'type': 'float'}
+                        'type': 'dict',
+                        'schema': {
+                            'price_euro_per_kw': {
+                                'type': 'float'
+                            },
+                            'quantity_kw': {
+                                'type': 'float'
+                            },
+                        }
+                    }
+                }
+            }
+        }
+    },
+    'shiftable_devices': {
+        'type': 'list',
+        'schema': {
+            'type': 'dict',
+            'schema': {
+                'name': {
+                    'type': 'string'
+                },
+                'load_entries': {
+                    'type': 'list',
+                    'schema': {
+                        'type': 'dict',
+                        'schema': {
+                            'timestamp': {
+                                'type': 'string',
+                                'is_iso_8601': True
+                            },
+                            'deadline': {
+                                'type': 'string',
+                                'is_iso_8601': True
+                            },
+                            'kw': {
+                                'type': 'float'
+                            },
+                            'price_euro_per_kw': {
+                                'type': 'float'
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    'EVs': {
+        'type': 'list',
+        'schema': {
+            'type': 'dict',
+            'schema': {
+                'name': {
+                    'type': 'string'
+                },
+                'charge_limit': {
+                    'type': 'float'
+                },
+                'load_entries': {
+                    'type': 'list',
+                    'schema': {
+                        'type': 'dict',
+                        'schema': {
+                            'timestamp': {
+                                'type': 'string',
+                                'is_iso_8601': True
+                            },
+                            'deadline': {
+                                'type': 'string',
+                                'is_iso_8601': True
+                            },
+                            'kw': {
+                                'type': 'float'
+                            },
+                            'price_euro_per_kw': {
+                                'type': 'float'
                             }
                         }
                     }
@@ -31,9 +115,7 @@ dr_prosumer_schema = {
             }
         }
     }
-
 }
-
 
 dp_schema = {
     'time_stamp': {
@@ -171,7 +253,6 @@ dp_schema = {
     'charger_soc': {
         'type': 'number',
     }
-
 }
 
 avg_term = {
@@ -195,6 +276,15 @@ prosumers = {
     'cache_control': 'max-age=10,must-revalidate',
     'cache_expires': 10,
     'schema': prosumer_schema,
+    'resource_methods': ['GET', 'POST'],
+    'item_methods': ['GET', 'PATCH', 'PUT', 'DELETE'],
+}
+
+dr_prosumers = {
+    # We choose to override global cache-control directives for this resource.
+    'cache_control': 'max-age=10,must-revalidate',
+    'cache_expires': 10,
+    'schema': dr_prosumer_schema,
     'resource_methods': ['GET', 'POST'],
     'item_methods': ['GET', 'PATCH', 'PUT', 'DELETE'],
 }
@@ -401,17 +491,17 @@ data_points_aggr = {
             'type': 'number',
             'minlength': 1,
         },
-         "charder_consumption_w_aggr": {
+        "charder_consumption_w_aggr": {
             'example': '7.25',
             'type': 'number',
             'minlength': 1,
         },
-         "charger_feed_in_w_aggr": {
+        "charger_feed_in_w_aggr": {
             'example': '7.25',
             'type': 'number',
             'minlength': 1,
         },
-         "charger_soc_aggr_aggr": {
+        "charger_soc_aggr_aggr": {
             'example': '7.25',
             'type': 'number',
             'minlength': 1,
@@ -523,17 +613,17 @@ data_points_aggr = {
                                                 },
                                             ],
                                         }, {
-                                                "$subtract": [{
-                                                    "$multiply": [
-                                                        1000, "$interval"
-                                                    ]
-                                                }, 1]
-                                            }],
+                                                     "$subtract": [{
+                                                         "$multiply": [
+                                                             1000, "$interval"
+                                                         ]
+                                                     }, 1]
+                                                 }],
                                     },
                                 },
                             },
-                            
-                        },**avg_term
+                        },
+                        **avg_term
                     },
                 },
                 {
@@ -550,6 +640,7 @@ DATE_FORMAT = '%Y-%m-%dT%H:%M:%S'
 
 DOMAIN = {
     'prosumers': prosumers,
+    'dr_prosumers': dr_prosumers,
     'data_points': data_points,
     'data_points_aggr': data_points_aggr,
 }
@@ -625,4 +716,4 @@ SENTINEL_MANAGEMENT_PASSWORD = os.getenv("SENTINEL_MANAGEMENT_PASSWORD")
 # You can also configure the error page uri with an endpoint name.
 #OAUTH2_PROVIDER_ERROR_ENDPOINT =
 
-PAGINATION_LIMIT=10000
+PAGINATION_LIMIT = 10000

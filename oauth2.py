@@ -27,6 +27,8 @@ class BearerAuth(BasicAuth):
         self.redis = StrictRedis()
         self.redis.connection_pool = redis.ConnectionPool.from_url(
             os.environ.get('REDIS_URL', 'redis://localhost:6379'))
+        self.redis.ping()
+        print("Connected to redis")
 
     def check_auth(self, token, allowed_roles, resource, method):
         """ Check if API request is authorized.
@@ -41,7 +43,7 @@ class BearerAuth(BasicAuth):
         """
         user = self.redis.get(token)
         print(f"We got: token={token}, allowed_roles={allowed_roles}, resource={resource}, method={method}, user={user}")
-        if resource in ['prosumers', 'data_points', 'data_points_aggr']:
+        if resource in ['prosumers', 'data_points', 'data_points_aggr', 'dr_prosumers']:
           return token and user
         elif resource == 'atp':
           return token and method == 'post' and user == b'5e95ba9d85575d046d807d0e'

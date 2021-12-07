@@ -20,27 +20,50 @@ from flask_sentinel import ResourceOwnerPasswordCredentials, oauth
 from eve_swagger import swagger, add_documentation
 import redis
 from flask import request
+from eve.io.mongo.validation import Validator
+from datetime import datetime
 
-app = Eve(auth=BearerAuth)
+
+class MyValidator(Validator):
+    def _validate_is_iso_8601(self, constraint, field, value):
+        """ Test that it is a valid ISO 8601 timestamp.
+
+        The rule's arguments are validated against this schema:
+        {'type': 'boolean'}
+        """
+        if constraint is True:
+            try:
+                datetime.fromisoformat(value)
+            except ValueError:
+                try:
+                    datetime.fromisoformat(value.replace('Z', '+00:00'))
+                except ValueError:
+                    print(value)
+                    self._error(field, "Must be valid is 8601 string in UTC")
+
+
+app = Eve(auth=BearerAuth, validator=MyValidator)
 ResourceOwnerPasswordCredentials(app)
+
 
 @app.route('/authorization/')
 def check_token():
     print(f"The app is {app.auth}")
-    if app.auth.check_auth(
-        request.args.get('token', default = None, type = str),
-        [],
-        request.args.get('resource', default = '/', type = str),
-        request.args.get('method', default = 'get', type = str)):
-      return "OK"
+    if app.auth.check_auth(request.args.get('token', default=None, type=str),
+                           [],
+                           request.args.get('resource', default='/', type=str),
+                           request.args.get('method', default='get',
+                                            type=str)):
+        return "OK"
     else:
-      return "Unauthorized"
+        return "Unauthorized"
 
 
 @app.route('/endpoint')
 @oauth.require_oauth()
 def restricted_access():
     return "You made it through and accessed the protected resource!"
+
 
 app.register_blueprint(swagger)
 # required. See http://swagger.io/specification/#infoObject for details.
