@@ -24,6 +24,9 @@ from eve.io.mongo.validation import Validator
 from datetime import datetime
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
+import os
+from dotenv import load_dotenv
+load_dotenv(verbose=True)
 
 
 class MyValidator(Validator):
@@ -47,8 +50,10 @@ class MyValidator(Validator):
 app = Eve(auth=BearerAuth, validator=MyValidator)
 ResourceOwnerPasswordCredentials(app)
 
-client = MongoClient(serverSelectionTimeoutMS=3)
-client.admin.command('ismaster')
+client1 = MongoClient(os.getenv("MONGO_URI"), serverSelectionTimeoutMS=3)
+client1.admin.command('ismaster')
+client2 = MongoClient(os.getenv("SENTINEL_MONGO_URI"), serverSelectionTimeoutMS=3)
+client2.admin.command('ismaster')
 print("Mongodb active")
 
 @app.route('/authorization/')
