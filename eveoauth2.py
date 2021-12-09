@@ -22,6 +22,8 @@ import redis
 from flask import request
 from eve.io.mongo.validation import Validator
 from datetime import datetime
+from pymongo import MongoClient
+from pymongo.errors import ConnectionFailure
 
 
 class MyValidator(Validator):
@@ -45,6 +47,9 @@ class MyValidator(Validator):
 app = Eve(auth=BearerAuth, validator=MyValidator)
 ResourceOwnerPasswordCredentials(app)
 
+client = MongoClient(serverSelectionTimeoutMS=3)
+client.admin.command('ismaster')
+print("Mongodb active")
 
 @app.route('/authorization/')
 def check_token():
