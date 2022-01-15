@@ -4,6 +4,7 @@ import os
 from dotenv import load_dotenv
 load_dotenv(verbose=True)
 
+
 class RestClient:
     def __init__(self):
         self.base_url = os.getenv("BASE_URL")
@@ -60,17 +61,21 @@ class RestClient:
 
     def post_collection(self, collection, list):
         url = f"{self.base_url}/{collection}"
+        print(f"Trying to post to {url}")
 
-        for obj in list:
-            payload = obj
-            headers = {'Authorization': f'Bearer {self.auth()}', 'Content-Type': 'application/json'}
-            # print(json.dumps(payload, indent=4, sort_keys=True))
+        payload = list
+        headers = {
+            'Authorization': f'Bearer {self.auth()}',
+            'Content-Type': 'application/json'
+        }
+        # print(json.dumps(payload, indent=4, sort_keys=True))
 
-            response = requests.request("POST",
-                                        url,
-                                        headers=headers,
-                                        data=json.dumps(payload))
-            print(response.text)
+        response = requests.request("POST",
+                                    url,
+                                    headers=headers,
+                                    data=json.dumps(payload))
+        print(response.text)
+        return [obj["_id"] for obj in json.loads(response.text)["_items"]]
 
     def delete_collection(self, collection):
         for obj in self.get_collection(collection):

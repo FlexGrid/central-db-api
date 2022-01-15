@@ -43,7 +43,7 @@ class BearerAuth(BasicAuth):
         """
         user = self.redis.get(token)
         print(f"We got: token={token}, allowed_roles={allowed_roles}, resource={resource}, method={method}, user={user}")
-        if resource in ['prosumers', 'data_points', 'data_points_aggr', 'dr_prosumers']:
+        if resource in ['prosumers', 'data_points', 'data_points_aggr', 'dr_prosumers', 'curtailable_loads',]:
           return token and user
         elif resource == 'atp':
           return token and method == 'post' and user == b'5e95ba9d85575d046d807d0e'

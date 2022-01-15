@@ -55,6 +55,7 @@ baseload_data = pandas.read_excel("./BRTP Input.xlsx",
                                   engine='openpyxl')
 
 dr_prosumer_schema = []
+curtailable_load_schema = []
 
 for flexibility_level in ['Low', 'Medium', 'High']:
     deadlines_shifts_data = pandas.read_excel(
@@ -96,9 +97,8 @@ for flexibility_level in ['Low', 'Medium', 'High']:
 
     for user_id, rowvalue in nshift_per_user_data.iterrows():
         prosumer = {
-            "name": f"user_{user_id}",
+            "name": f"user_{user_id}_{flexibility_level}",
             "flexibility_level": flexibility_level,
-            'curtailable_load': [],
             'shiftable_devices': [],
             'EVs': []
         }
@@ -116,20 +116,26 @@ for flexibility_level in ['Low', 'Medium', 'High']:
                 'base_load_kw':
                 float(baseload_data[f"t={t}"][f"user={user_id}"]),
                 'flexibility': [],
+                'prosumer_id':
+                prosumer['name'],
             }
 
             user = None
             for (u, step), rv in curtailable_bids_data.iterrows():
                 if (int(u) > 0):
                     user = u
-                price_euro_per_kw = float(rv[(f"t={t}", "Price")])
-                quantity_kw = float(rv[(f"t={t}", "Quantity")])
-                if (price_euro_per_kw > 0 or quantity_kw > 0):
-                    load_enrty['flexibility'] += [{
-                        'price_euro_per_kw': price_euro_per_kw,
-                        'quantity_kw': quantity_kw,
-                    }]
-            prosumer['curtailable_load'] += [load_enrty]
+                if user == user_id:
+                    price_euro_per_kw = float(rv[(f"t={t}", "Price")])
+                    quantity_kw = float(rv[(f"t={t}", "Quantity")])
+                    if (price_euro_per_kw > 0 or quantity_kw > 0):
+                        load_enrty['flexibility'] += [{
+                            'price_euro_per_kw':
+                            price_euro_per_kw,
+                            'quantity_kw':
+                            quantity_kw,
+                        }]
+            # prosumer['curtailable_load'] += [load_enrty]
+            curtailable_load_schema += [load_enrty]
 
         for device_id in range(1, int(rowvalue['Number Of Devices']) + 1):
             device = {'name': f'device_{device_id}', 'load_entries': []}
@@ -202,5 +208,22 @@ result = rest_client.get_collection("dr_prosumers")
 print(json.dumps(result, indent=4, sort_keys=True))
 print(f"Total: {len(result)}")
 
+rest_client.delete_collection("curtailable_loads")
+
 rest_client.delete_collection("dr_prosumers")
-rest_client.post_collection("dr_prosumers", dr_prosumer_schema)
+ids = rest_client.post_collection("dr_prosumers", dr_prosumer_schema)
+
+print(f"The ids are {ids}")
+
+cache = {
+    prosumer["name"]: ids[idx]
+    for idx, prosumer in enumerate(dr_prosumer_schema)
+}
+
+print(f"The cache is {cache}")
+
+for idx, item in enumerate(curtailable_load_schema):
+    # print(item)
+    item["prosumer_id"] = cache[item["prosumer_id"]]
+
+rest_client.post_collection("curtailable_loads", curtailable_load_schema)

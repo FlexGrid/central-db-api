@@ -6,6 +6,43 @@ from bson import ObjectId
 
 prosumer_schema = {}
 
+curtailable_load_schema = {
+    'prosumer_id': {
+        'type': 'objectid',
+        'required': True,
+    },
+    'timestamp': {
+        'type': 'string',
+        'is_iso_8601': True,
+        'required': True,
+    },
+    'desired_consumption_kw': {
+        'type': 'float',
+        'required': True,
+    },
+    'base_load_kw': {
+        'type': 'float',
+        'required': True,
+    },
+    'flexibility': {
+        'type': 'list',
+        'required': True,
+        'schema': {
+            'type': 'dict',
+            'schema': {
+                'price_euro_per_kw': {
+                    'type': 'float',
+                    'required': True,
+                },
+                'quantity_kw': {
+                    'type': 'float',
+                    'required': True,
+                },
+            }
+        }
+    }
+}
+
 dr_prosumer_schema = {
     'name': {
         'type': 'string',
@@ -13,38 +50,6 @@ dr_prosumer_schema = {
     'flexibility_level': {
         "allowed": ["Low", "Medium", "High"],
         "required": True
-    },
-    'curtailable_load': {
-        'type': 'list',
-        'schema': {
-            'type': 'dict',
-            'schema': {
-                'timestamp': {
-                    'type': 'string',
-                    'is_iso_8601': True
-                },
-                'desired_consumption_kw': {
-                    'type': 'float'
-                },
-                'base_load_kw': {
-                    'type': 'float'
-                },
-                'flexibility': {
-                    'type': 'list',
-                    'schema': {
-                        'type': 'dict',
-                        'schema': {
-                            'price_euro_per_kw': {
-                                'type': 'float'
-                            },
-                            'quantity_kw': {
-                                'type': 'float'
-                            },
-                        }
-                    }
-                }
-            }
-        }
     },
     'shiftable_devices': {
         'type': 'list',
@@ -287,6 +292,33 @@ dr_prosumers = {
     'schema': dr_prosumer_schema,
     'resource_methods': ['GET', 'POST'],
     'item_methods': ['GET', 'PATCH', 'PUT', 'DELETE'],
+    'mongo_indexes': {
+        'name_index': ([('name', 1)], {
+            "unique": True
+        }),
+        #     'curt_index': [('curtailable_load.timestamp', 1)],
+        #     'shift_index': [('shiftable_devices.load_entries.timestamp', 1)],
+        #     'ev_index': [('EVs.load_entries.timestamp', 1)],
+    },
+}
+
+curtailable_loads = {
+    # We choose to override global cache-control directives for this resource.
+    'cache_control': 'max-age=10,must-revalidate',
+    'cache_expires': 10,
+    'schema': curtailable_load_schema,
+    'resource_methods': ['GET', 'POST'],
+    'item_methods': ['GET', 'PATCH', 'PUT', 'DELETE'],
+    'mongo_indexes': {
+        'uniqness': ([('prosumer_id', 1), ('timestamp', 1)], {
+            "unique": True
+        }),
+        'prosumer_id': [('prosumer_id', 1)],
+        'timestamp': [('timestamp', 1)],
+        # 'curt_index': [('curtailable_load.timestamp', 1)],
+        # 'shift_index': [('shiftable_devices.load_entries.timestamp', 1)],
+        # 'ev_index': [('EVs.load_entries.timestamp', 1)],
+    },
 }
 
 data_points_aggr = {
@@ -643,6 +675,7 @@ DOMAIN = {
     'dr_prosumers': dr_prosumers,
     'data_points': data_points,
     'data_points_aggr': data_points_aggr,
+    'curtailable_loads': curtailable_loads,
 }
 
 # Let's just use the local mongod instance. Edit as needed.
