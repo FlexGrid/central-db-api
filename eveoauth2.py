@@ -28,6 +28,15 @@ import os
 from dotenv import load_dotenv
 load_dotenv(verbose=True)
 
+# importing ObjectId from bson library
+from bson.objectid import ObjectId
+
+client1 = MongoClient(os.getenv("MONGO_URI"), serverSelectionTimeoutMS=3)
+client1.admin.command('ismaster')
+client2 = MongoClient(os.getenv("SENTINEL_MONGO_URI"),
+                      serverSelectionTimeoutMS=3)
+client2.admin.command('ismaster')
+
 
 class MyValidator(Validator):
     def _validate_is_iso_8601(self, constraint, field, value):
@@ -46,15 +55,55 @@ class MyValidator(Validator):
                     print(value)
                     self._error(field, "Must be valid is 8601 string in UTC")
 
+    def _validate_is_valid_offset(self, constraint, field, value):
+        """ Test that it is a valid object.
+
+        The rule's arguments are validated against this schema:
+        {'type': 'boolean'}
+        """
+        if constraint is True:
+            obj_id = self.document.get('prosumer_id')
+            obj_type = self.document.get('type')
+            obj_name = self.document.get('obj_name')
+            # id = "5fec2c0b348df9f22156cc07"
+            objInstance = ObjectId(obj_id)
+
+            obj = client1['flexgrid_main']['dr_prosumers'].find_one(
+                objInstance)
+
+            if obj is None:
+                print(field)
+                self._error('prosumer_id',
+                            f"Prosumer with id {objInstance} not found")
+
+            if obj[obj_type][value]["name"] != obj_name:
+
+                self._error(
+                    "field",
+                    f"Prosumer with id {objInstance} doesn't have {obj_name} at index {value} of {obj_type}"
+                )
+
+    def _validate_is_prosumer_id(self, constraint, field, value):
+        """ Test that it is a valid object.
+
+        The rule's arguments are validated against this schema:
+        {'type': 'boolean'}
+        """
+        if constraint is True:
+
+            obj_id = ObjectId(value)
+            obj = client1['flexgrid_main']['dr_prosumers'].find_one(obj_id)
+
+            if obj is None:
+                print(field)
+                self._error(field, f"Prosumer with id {obj_id} not found")
+
 
 app = Eve(auth=BearerAuth, validator=MyValidator)
 ResourceOwnerPasswordCredentials(app)
 
-client1 = MongoClient(os.getenv("MONGO_URI"), serverSelectionTimeoutMS=3)
-client1.admin.command('ismaster')
-client2 = MongoClient(os.getenv("SENTINEL_MONGO_URI"), serverSelectionTimeoutMS=3)
-client2.admin.command('ismaster')
 print("Mongodb active")
+
 
 @app.route('/authorization/')
 def check_token():

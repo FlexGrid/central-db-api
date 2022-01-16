@@ -9,6 +9,7 @@ prosumer_schema = {}
 curtailable_load_schema = {
     'prosumer_id': {
         'type': 'objectid',
+        'is_prosumer_id': True,
         'required': True,
     },
     'timestamp': {
@@ -43,6 +44,46 @@ curtailable_load_schema = {
     }
 }
 
+load_entry_schema = {
+    'prosumer_id': {
+        'type': 'objectid',
+        'is_prosumer_id': True,
+        'required': True,
+    },
+    'type': {
+        "type": "string",
+        "allowed": ["shiftable_devices", "EVs"],
+        'required': True,
+    },
+    'offset': {
+        'type': 'integer',
+        'is_valid_offset': True,
+        'required': True,
+    },
+    'obj_name': {
+        'type': 'string',
+        'required': True,
+    },
+    'timestamp': {
+        'type': 'string',
+        'is_iso_8601': True,
+        'required': True,
+    },
+    'deadline': {
+        'type': 'string',
+        'is_iso_8601': True,
+        'required': True,
+    },
+    'kw': {
+        'type': 'float',
+        'required': True,
+    },
+    'price_euro_per_kw': {
+        'type': 'float',
+        'required': True,
+    }
+}
+
 dr_prosumer_schema = {
     'name': {
         'type': 'string',
@@ -59,28 +100,6 @@ dr_prosumer_schema = {
                 'name': {
                     'type': 'string'
                 },
-                'load_entries': {
-                    'type': 'list',
-                    'schema': {
-                        'type': 'dict',
-                        'schema': {
-                            'timestamp': {
-                                'type': 'string',
-                                'is_iso_8601': True
-                            },
-                            'deadline': {
-                                'type': 'string',
-                                'is_iso_8601': True
-                            },
-                            'kw': {
-                                'type': 'float'
-                            },
-                            'price_euro_per_kw': {
-                                'type': 'float'
-                            }
-                        }
-                    }
-                }
             }
         }
     },
@@ -94,28 +113,6 @@ dr_prosumer_schema = {
                 },
                 'charge_limit': {
                     'type': 'float'
-                },
-                'load_entries': {
-                    'type': 'list',
-                    'schema': {
-                        'type': 'dict',
-                        'schema': {
-                            'timestamp': {
-                                'type': 'string',
-                                'is_iso_8601': True
-                            },
-                            'deadline': {
-                                'type': 'string',
-                                'is_iso_8601': True
-                            },
-                            'kw': {
-                                'type': 'float'
-                            },
-                            'price_euro_per_kw': {
-                                'type': 'float'
-                            }
-                        }
-                    }
                 }
             }
         }
@@ -318,6 +315,25 @@ curtailable_loads = {
         # 'curt_index': [('curtailable_load.timestamp', 1)],
         # 'shift_index': [('shiftable_devices.load_entries.timestamp', 1)],
         # 'ev_index': [('EVs.load_entries.timestamp', 1)],
+    },
+}
+
+load_entries = {
+    # We choose to override global cache-control directives for this resource.
+    'cache_control': 'max-age=10,must-revalidate',
+    'cache_expires': 10,
+    'schema': load_entry_schema,
+    'resource_methods': ['GET', 'POST'],
+    'item_methods': ['GET', 'PATCH', 'PUT', 'DELETE'],
+    'mongo_indexes': {
+        'uniqness': ([('prosumer_id', 1), ('timestamp', 1), ("type", 1),
+                      ("offset", 1)], {
+                          "unique": True
+                      }),
+        'prosumer_id': [('prosumer_id', 1)],
+        'timestamp': [('timestamp', 1)],
+        'type': [('type', 1)],
+        'offset': [('offset', 1)],
     },
 }
 
@@ -676,6 +692,7 @@ DOMAIN = {
     'data_points': data_points,
     'data_points_aggr': data_points_aggr,
     'curtailable_loads': curtailable_loads,
+    'load_entries': load_entries,
 }
 
 # Let's just use the local mongod instance. Edit as needed.

@@ -56,6 +56,7 @@ baseload_data = pandas.read_excel("./BRTP Input.xlsx",
 
 dr_prosumer_schema = []
 curtailable_load_schema = []
+load_entry_schema = []
 
 for flexibility_level in ['Low', 'Medium', 'High']:
     deadlines_shifts_data = pandas.read_excel(
@@ -138,7 +139,7 @@ for flexibility_level in ['Low', 'Medium', 'High']:
             curtailable_load_schema += [load_enrty]
 
         for device_id in range(1, int(rowvalue['Number Of Devices']) + 1):
-            device = {'name': f'device_{device_id}', 'load_entries': []}
+            device = {'name': f'device_{device_id}'}
             for t in range(
                     1,
                     int(
@@ -160,9 +161,17 @@ for flexibility_level in ['Low', 'Medium', 'High']:
                         (dt +
                          datetime.timedelta(hours=float(deadlines_shifts_data[
                              f"User {user_id}"][f"Device {device_id}"]) -
-                                            1)).strftime('%Y-%m-%dT%H:%M:%SZ')
+                                            1)).strftime('%Y-%m-%dT%H:%M:%SZ'),
+                        "prosumer_id":
+                        prosumer["name"],
+                        "obj_name":
+                        device['name'],
+                        "type":
+                        "shiftable_devices",
+                        "offset":
+                        device_id - 1,
                     }
-                    device['load_entries'] += [load_entry]
+                    load_entry_schema += [load_entry]
             prosumer['shiftable_devices'] += [device]
 
         for ev_id in range(1, int(nevs_per_user_data['EVs'][user_id]) + 1):
@@ -170,7 +179,6 @@ for flexibility_level in ['Low', 'Medium', 'High']:
                 'name': f'ev_{ev_id}',
                 'charge_limit':
                 float(nevs_per_user_data['Charge Limit'][user_id]),
-                'load_entries': []
             }
 
             for t in range(
@@ -192,8 +200,16 @@ for flexibility_level in ['Low', 'Medium', 'High']:
                             1)).strftime('%Y-%m-%dT%H:%M:%SZ'),
                         'price_euro_per_kw':
                         delta_evs_data[f"User {user_id}"][f"Device {ev_id}"],
+                        "prosumer_id":
+                        prosumer["name"],
+                        "obj_name":
+                        ev['name'],
+                        "type":
+                        "EVs",
+                        "offset":
+                        ev_id - 1,
                     }
-                    ev['load_entries'] += [load_entry]
+                    load_entry_schema += [load_entry]
 
             prosumer['EVs'] += [ev]
         dr_prosumer_schema += [prosumer]
@@ -209,6 +225,7 @@ print(json.dumps(result, indent=4, sort_keys=True))
 print(f"Total: {len(result)}")
 
 rest_client.delete_collection("curtailable_loads")
+rest_client.delete_collection("load_entries")
 
 rest_client.delete_collection("dr_prosumers")
 ids = rest_client.post_collection("dr_prosumers", dr_prosumer_schema)
@@ -226,4 +243,10 @@ for idx, item in enumerate(curtailable_load_schema):
     # print(item)
     item["prosumer_id"] = cache[item["prosumer_id"]]
 
+for idx, item in enumerate(load_entry_schema):
+    # print(item)
+    item["prosumer_id"] = cache[item["prosumer_id"]]
+
 rest_client.post_collection("curtailable_loads", curtailable_load_schema)
+
+rest_client.post_collection("load_entries", load_entry_schema)

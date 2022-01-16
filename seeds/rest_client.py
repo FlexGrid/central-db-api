@@ -78,6 +78,7 @@ class RestClient:
         return [obj["_id"] for obj in json.loads(response.text)["_items"]]
 
     def delete_collection(self, collection):
+        print(f"Deleting {collection}")
         for obj in self.get_collection(collection):
             url = f"{self.base_url}/{collection}/{obj['_id']}"
             headers = {
@@ -88,4 +89,5 @@ class RestClient:
                                         url,
                                         headers=headers,
                                         data={})
-            print(response.text)
+            if response.text:
+                print(response.text)
