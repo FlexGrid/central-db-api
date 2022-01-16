@@ -6,10 +6,52 @@ from bson import ObjectId
 
 prosumer_schema = {}
 
+flexibility_schema = {
+    'type': 'list',
+    'required': True,
+    'schema': {
+        'type': 'dict',
+        'schema': {
+            'price_euro_per_kw': {
+                'type': 'float',
+                'required': True,
+            },
+            'quantity_kw': {
+                'type': 'float',
+                'required': True,
+            },
+        }
+    }
+}
+
+flex_request_data_point_schema = {
+    'flex_request_id': {
+        'type': 'objectid',
+        'is_valid_object': True,
+        'required': True,
+    },
+    'timestamp': {
+        'type': 'string',
+        'is_iso_8601': True,
+        'required': True,
+    },
+    'flexibility': flexibility_schema,
+}
+
+flex_request_schema = {
+    'name': {
+        'type': 'string',
+    },
+    'flexibility_level': {
+        "allowed": ["Low", "Medium", "High"],
+        "required": True
+    },
+}
+
 curtailable_load_schema = {
     'prosumer_id': {
         'type': 'objectid',
-        'is_prosumer_id': True,
+        'is_valid_object': True,
         'required': True,
     },
     'timestamp': {
@@ -25,29 +67,13 @@ curtailable_load_schema = {
         'type': 'float',
         'required': True,
     },
-    'flexibility': {
-        'type': 'list',
-        'required': True,
-        'schema': {
-            'type': 'dict',
-            'schema': {
-                'price_euro_per_kw': {
-                    'type': 'float',
-                    'required': True,
-                },
-                'quantity_kw': {
-                    'type': 'float',
-                    'required': True,
-                },
-            }
-        }
-    }
+    'flexibility': flexibility_schema,
 }
 
 load_entry_schema = {
     'prosumer_id': {
         'type': 'objectid',
-        'is_prosumer_id': True,
+        'is_valid_object': True,
         'required': True,
     },
     'type': {
@@ -334,6 +360,42 @@ load_entries = {
         'timestamp': [('timestamp', 1)],
         'type': [('type', 1)],
         'offset': [('offset', 1)],
+    },
+}
+
+flex_request_data_points = {
+    # We choose to override global cache-control directives for this resource.
+    'cache_control': 'max-age=10,must-revalidate',
+    'cache_expires': 10,
+    'schema': flex_request_data_point_schema,
+    'resource_methods': ['GET', 'POST'],
+    'item_methods': ['GET', 'PATCH', 'PUT', 'DELETE'],
+    'mongo_indexes': {
+        'uniqness': ([
+            ('flex_request_id', 1),
+            ('timestamp', 1),
+        ], {
+            "unique": True
+        }),
+        'flex_request_id': [('prosumer_id', 1)],
+        'timestamp': [('timestamp', 1)],
+    },
+}
+
+flex_requests = {
+    # We choose to override global cache-control directives for this resource.
+    'cache_control': 'max-age=10,must-revalidate',
+    'cache_expires': 10,
+    'schema': flex_request_schema,
+    'resource_methods': ['GET', 'POST'],
+    'item_methods': ['GET', 'PATCH', 'PUT', 'DELETE'],
+    'mongo_indexes': {
+        'name_index': ([('name', 1)], {
+            "unique": True
+        }),
+        #     'curt_index': [('curtailable_load.timestamp', 1)],
+        #     'shift_index': [('shiftable_devices.load_entries.timestamp', 1)],
+        #     'ev_index': [('EVs.load_entries.timestamp', 1)],
     },
 }
 
@@ -693,6 +755,8 @@ DOMAIN = {
     'data_points_aggr': data_points_aggr,
     'curtailable_loads': curtailable_loads,
     'load_entries': load_entries,
+    'flex_requests': flex_requests,
+    'flex_request_data_points': flex_request_data_points,
 }
 
 # Let's just use the local mongod instance. Edit as needed.

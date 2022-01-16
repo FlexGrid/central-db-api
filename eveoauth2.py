@@ -83,7 +83,7 @@ class MyValidator(Validator):
                     f"Prosumer with id {objInstance} doesn't have {obj_name} at index {value} of {obj_type}"
                 )
 
-    def _validate_is_prosumer_id(self, constraint, field, value):
+    def _validate_is_valid_object(self, constraint, field, value):
         """ Test that it is a valid object.
 
         The rule's arguments are validated against this schema:
@@ -92,7 +92,13 @@ class MyValidator(Validator):
         if constraint is True:
 
             obj_id = ObjectId(value)
-            obj = client1['flexgrid_main']['dr_prosumers'].find_one(obj_id)
+
+            if field == "prosumer_id":
+                collection = 'dr_prosumers'
+            elif field == "flex_request_id":
+                collection = 'flex_requests'
+
+            obj = client1['flexgrid_main'][collection].find_one(obj_id)
 
             if obj is None:
                 print(field)

@@ -159,3 +159,5 @@ pip-selfcheck.json
 
 # VScode files
 .vscode/
+testenv/
+**/.~lock.*

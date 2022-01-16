@@ -57,7 +57,9 @@ baseload_data = pandas.read_excel("./BRTP Input.xlsx",
 dr_prosumer_schema = []
 curtailable_load_schema = []
 load_entry_schema = []
-
+flex_request_schema = []
+flex_request_data_point_schema = []
+flex_id = 1
 for flexibility_level in ['Low', 'Medium', 'High']:
     deadlines_shifts_data = pandas.read_excel(
         "./BRTP Input.xlsx",
@@ -96,6 +98,13 @@ for flexibility_level in ['Low', 'Medium', 'High']:
         index_col=[0, 1],
         engine='openpyxl')
 
+    flex_request_data = pandas.read_excel(
+        "./BRTP Input.xlsx",
+        sheet_name=f'Flex Request {flexibility_level}',
+        header=[0, 1],
+        index_col=0,
+        engine='openpyxl')
+
     for user_id, rowvalue in nshift_per_user_data.iterrows():
         prosumer = {
             "name": f"user_{user_id}_{flexibility_level}",
@@ -128,13 +137,11 @@ for flexibility_level in ['Low', 'Medium', 'High']:
                 if user == user_id:
                     price_euro_per_kw = float(rv[(f"t={t}", "Price")])
                     quantity_kw = float(rv[(f"t={t}", "Quantity")])
-                    if (price_euro_per_kw > 0 or quantity_kw > 0):
-                        load_enrty['flexibility'] += [{
-                            'price_euro_per_kw':
-                            price_euro_per_kw,
-                            'quantity_kw':
-                            quantity_kw,
-                        }]
+                    # if (price_euro_per_kw > 0 or quantity_kw > 0):
+                    load_enrty['flexibility'] += [{
+                        'price_euro_per_kw': price_euro_per_kw,
+                        'quantity_kw': quantity_kw,
+                    }]
             # prosumer['curtailable_load'] += [load_enrty]
             curtailable_load_schema += [load_enrty]
 
@@ -214,6 +221,36 @@ for flexibility_level in ['Low', 'Medium', 'High']:
             prosumer['EVs'] += [ev]
         dr_prosumer_schema += [prosumer]
 
+    flex_request_name = f"flex_request_{flex_id}_{flexibility_level}"
+    flex_request_schema += [{
+        'name': flex_request_name,
+        "flexibility_level": flexibility_level,
+    }]
+
+    for t in range(1, int(rv.count() / 2 + 1)):
+
+        entries = []
+        for step, rv in flex_request_data.iterrows():
+
+            # print(step, float(rv[f"t={t}"]["Price"]))
+            entries += [{
+                'price_euro_per_kw': float(rv[f"t={t}"]["Price"]),
+                'quantity_kw': float(rv[f"t={t}"]["Quantity"]),
+            }]
+
+        flex_request_data_point_schema += [{
+            'flex_request_id':
+            flex_request_name,
+            'timestamp':
+            (dt +
+             datetime.timedelta(hours=t - 1)).strftime('%Y-%m-%dT%H:%M:%SZ'),
+            'flexibility':
+            entries,
+        }]
+
+    # print(json.dumps(flex_request_data_point_schema, indent=4, sort_keys=True))
+    # sys.exit()
+
 print(dr_prosumer_schema)
 print(json.dumps(dr_prosumer_schema, indent=4, sort_keys=True))
 
@@ -228,6 +265,10 @@ rest_client.delete_collection("curtailable_loads")
 rest_client.delete_collection("load_entries")
 
 rest_client.delete_collection("dr_prosumers")
+
+rest_client.delete_collection("flex_requests")
+rest_client.delete_collection("flex_request_data_points")
+
 ids = rest_client.post_collection("dr_prosumers", dr_prosumer_schema)
 
 print(f"The ids are {ids}")
@@ -250,3 +291,17 @@ for idx, item in enumerate(load_entry_schema):
 rest_client.post_collection("curtailable_loads", curtailable_load_schema)
 
 rest_client.post_collection("load_entries", load_entry_schema)
+
+ids = rest_client.post_collection("flex_requests", flex_request_schema)
+
+cache = {
+    flex_request["name"]: ids[idx]
+    for idx, flex_request in enumerate(flex_request_schema)
+}
+
+for idx, item in enumerate(flex_request_data_point_schema):
+    # print(item)
+    item["flex_request_id"] = cache[item["flex_request_id"]]
+
+rest_client.post_collection("flex_request_data_points",
+                            flex_request_data_point_schema)

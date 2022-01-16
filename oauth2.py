@@ -53,6 +53,8 @@ class BearerAuth(BasicAuth):
                 'dr_prosumers',
                 'curtailable_loads',
                 'load_entries',
+                'flex_requests',
+                'flex_request_data_points',
         ]:
             return token and user
         elif resource == 'atp':
