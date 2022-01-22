@@ -185,8 +185,8 @@ add_documentation(
     {
         'components': {
             'securitySchemes': {
-                'type': 'oauth2',
-                'flows': {
+# 'type': 'oauth2',
+               'oAuth2': { 'flows': {'password': {
                     #                     'authorizationCode': {
                     #                         'authorizationUrl':
                     #                         'https://example.com/oauth/authorize',
@@ -197,6 +197,7 @@ add_documentation(
                     #                             'admin': 'Grants access to admin operations',
                     #                         }
                     #                     }
+                }}
                 }
             }
         },
