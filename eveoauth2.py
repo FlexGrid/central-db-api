@@ -17,7 +17,7 @@
 from eve import Eve
 from oauth2 import BearerAuth
 from flask_sentinel import ResourceOwnerPasswordCredentials, oauth
-from eve_swagger import swagger, add_documentation
+from eve_swagger import get_swagger_blueprint, add_documentation
 import redis
 from flask import request
 from eve.io.mongo.validation import Validator
@@ -104,6 +104,16 @@ class MyValidator(Validator):
                 print(field)
                 self._error(field, f"Prosumer with id {obj_id} not found")
 
+    def _validate_description(self, description, field, value):
+        """ {'type': 'string'} """
+        # Accept description attribute, used for swagger doc generation
+        pass
+
+    def _validate_example(self, description, field, value):
+        """ {'type': 'string'} """
+        # Accept an example attribute, used for swagger doc generation
+        pass
+
 
 app = Eve(auth=BearerAuth, validator=MyValidator)
 ResourceOwnerPasswordCredentials(app)
@@ -130,13 +140,14 @@ def restricted_access():
     return "You made it through and accessed the protected resource!"
 
 
+swagger = get_swagger_blueprint()
 app.register_blueprint(swagger)
 # required. See http://swagger.io/specification/#infoObject for details.
 app.config['SWAGGER_INFO'] = {
     'title': 'Flexgrid DataBase API',
     'version': '1.0',
     'description': 'The central repository of the flexgrid project',
-    'termsOfService': 'my terms of service',
+    # 'termsOfService': 'my terms of service',
     'contact': {
         'name': 'Dimitros J. Vergados',
         'url': 'https://flexgrid-project.eu'
@@ -148,70 +159,84 @@ app.config['SWAGGER_INFO'] = {
     'schemes': ['https']
 }
 
-app.config['SWAGGER_EXAMPLE_FIELD_REMOVE'] = True
+# app.config['SWAGGER_EXAMPLE_FIELD_REMOVE'] = True
 
 # optional. Add/Update elements in the documentation at run-time without deleting subtrees.
-add_documentation({
-    'paths': {
-        '/data_points_aggr': {
-            'get': {
-                'parameters': [{
-                    'in': 'query',
-                    'name': 'aggregate',
-                    'required': True,
-                    'description':
-                    'JSON with the values like this: `{"$start": "2017-07-11T19:05:00","$end":"2017-07-11T22:00:01", "$prosumer_ids": ["5ee8e1fc00871cbb09d9fdf8", "5ee8e0fa00871cbb09d9fdc0"], "$interval": 3600}`',
-                    'type': 'string'
-                }]
-            }
-        }
-    }
-})
+# add_documentation(
+#     swagger, {
+#         'paths': {
+#             '/data_points_aggr': {
+#                 'get': {
+#                     'parameters': [{
+#                         'in': 'query',
+#                         'name': 'aggregate',
+#                         'required': True,
+#                         'description':
+#                         'JSON with the values like this: `{"$start": "2017-07-11T19:05:00","$end":"2017-07-11T22:00:01", "$prosumer_ids": ["5ee8e1fc00871cbb09d9fdf8", "5ee8e0fa00871cbb09d9fdc0"], "$interval": 3600}`',
+#                         'type': 'string'
+#                     }]
+#                 }
+#             }
+#         }
+#     })
 
-add_documentation({
-    'securityDefinitions': {
-        "MyTokenAuth": {
-            'type': 'oauth2',
-            'flow': 'password',
-            'tokenUrl': 'https://db.flexgrid-project.eu/oauth/token',
-        }
-    }
-})
-# iterate over all resources and items and add security
-for resource, rd in app.config['DOMAIN'].items():
-    if (rd.get('disable_documentation') or resource.endswith('_versions')):
-        continue
+# add_documentation(
+#     swagger, {
+#         'components': {
+#             'securitySchemes': {
+#                 'type': 'oauth2',
+#                 'flows': {
+#                     'authorizationCode': {
+#                         'authorizationUrl':
+#                         'https://example.com/oauth/authorize',
+#                         'tokenUrl':
+#                         'https://db.flexgrid-project.eu/oauth/token',
+#                         'scopes': {
+#                             'read': 'Grants read access',
+#                             'write': 'Grants write access',
+#                             'admin': 'Grants access to admin operations',
+#                         }
+#                     }
+#                 }
+#             }
+#         },
+#         'security': [{'oAuth2': ['read', 'write']}]
+#     })
+# # iterate over all resources and items and add security
+# for resource, rd in app.config['DOMAIN'].items():
+#     if (rd.get('disable_documentation') or resource.endswith('_versions')):
+#         continue
 
-    methods = rd['resource_methods']
-    url = '/%s' % rd['url']
-    for method in methods:
-        add_documentation({
-            'paths': {
-                url: {
-                    method.lower(): {
-                        "security": [{
-                            "MyTokenAuth": []
-                        }]
-                    }
-                }
-            }
-        })
+#     methods = rd['resource_methods']
+#     url = '/%s' % rd['url']
+#     for method in methods:
+#         add_documentation(swagger, {
+#             'paths': {
+#                 url: {
+#                     method.lower(): {
+#                         "security": [{
+#                             "oAuth2": ['read']
+#                         }]
+#                     }
+#                 }
+#             }
+#         })
 
-    methods = rd['item_methods']
-    item_id = '%sId' % rd['item_title'].lower()
-    url = '/%s/{%s}' % (rd['url'], item_id)
-    for method in methods:
-        add_documentation({
-            'paths': {
-                url: {
-                    method.lower(): {
-                        "security": [{
-                            "MyTokenAuth": []
-                        }]
-                    }
-                }
-            }
-        })
+#     methods = rd['item_methods']
+#     item_id = '%sId' % rd['item_title'].lower()
+#     url = '/%s/{%s}' % (rd['url'], item_id)
+#     for method in methods:
+#         add_documentation(swagger, {
+#             'paths': {
+#                 url: {
+#                     method.lower(): {
+#                         "security": [{
+#                             "oAuth2": ['read']
+#                         }]
+#                     }
+#                 }
+#             }
+#         })
 
 if __name__ == '__main__':
     app.run()

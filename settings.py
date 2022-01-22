@@ -310,6 +310,7 @@ prosumers = {
 
 dr_prosumers = {
     # We choose to override global cache-control directives for this resource.
+    'description': 'This model represents the flexible prosumers for the pricing scenario.',
     'cache_control': 'max-age=10,must-revalidate',
     'cache_expires': 10,
     'schema': dr_prosumer_schema,
@@ -327,6 +328,11 @@ dr_prosumers = {
 
 curtailable_loads = {
     # We choose to override global cache-control directives for this resource.
+    'description': '''\
+This model represents the curtailable load for each dr_prosuemr.
+
+The `prosumer_id` field relates the object to the `_id` field of the `dr_prosumer`. 
+''',
     'cache_control': 'max-age=10,must-revalidate',
     'cache_expires': 10,
     'schema': curtailable_load_schema,
@@ -349,6 +355,7 @@ load_entries = {
     'cache_control': 'max-age=10,must-revalidate',
     'cache_expires': 10,
     'schema': load_entry_schema,
+    'item_title': "Load_entry",
     'resource_methods': ['GET', 'POST'],
     'item_methods': ['GET', 'PATCH', 'PUT', 'DELETE'],
     'mongo_indexes': {
@@ -749,14 +756,14 @@ data_points_aggr = {
 DATE_FORMAT = '%Y-%m-%dT%H:%M:%S'
 
 DOMAIN = {
-    'prosumers': prosumers,
     'dr_prosumers': dr_prosumers,
-    'data_points': data_points,
-    'data_points_aggr': data_points_aggr,
     'curtailable_loads': curtailable_loads,
     'load_entries': load_entries,
     'flex_requests': flex_requests,
     'flex_request_data_points': flex_request_data_points,
+    'data_points': data_points,
+    'data_points_aggr': data_points_aggr,
+    'prosumers': prosumers,
 }
 
 # Let's just use the local mongod instance. Edit as needed.
