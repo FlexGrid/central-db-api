@@ -29,11 +29,13 @@ flex_request_data_point_schema = {
         'type': 'objectid',
         'is_valid_object': True,
         'required': True,
+        'example': "61e555ae85575d81d075c90f",
     },
     'timestamp': {
         'type': 'string',
         'is_iso_8601': True,
         'required': True,
+        'example': "2021-11-11T00:00:00Z",
     },
     'flexibility': flexibility_schema,
 }
@@ -53,11 +55,13 @@ curtailable_load_schema = {
         'type': 'objectid',
         'is_valid_object': True,
         'required': True,
+        'example': '61e555aa85575d81ce75c63f',
     },
     'timestamp': {
         'type': 'string',
         'is_iso_8601': True,
         'required': True,
+        'example': "2021-11-11T00:00:00Z",
     },
     'desired_consumption_kw': {
         'type': 'float',
@@ -75,6 +79,7 @@ load_entry_schema = {
         'type': 'objectid',
         'is_valid_object': True,
         'required': True,
+        'example': '61e555aa85575d81ce75c63f',
     },
     'type': {
         "type": "string",
@@ -89,11 +94,13 @@ load_entry_schema = {
     'obj_name': {
         'type': 'string',
         'required': True,
+        'example': 'device_1'
     },
     'timestamp': {
         'type': 'string',
         'is_iso_8601': True,
         'required': True,
+        'example': "2021-11-11T00:00:00Z",
     },
     'deadline': {
         'type': 'string',
@@ -307,7 +314,15 @@ prosumers = {
 
 dr_prosumers = {
     # We choose to override global cache-control directives for this resource.
-    'description': 'This model represents the flexible prosumers for the pricing scenario.',
+    'description': '''\
+This model represents the flexible prosumers for the pricing scenario.
+
+It is related to the `curtailable_loads` schema, that contain the flexibility parameters
+of the curtailable loads that are associated with the prosumer, for each timestamp.
+
+It also contains a list of `flex_devices`, and a list of `EVs`, that are linked to
+the `load_entries` objects, with one load entry per device or EV and per timestamp.
+''',
     'cache_control': 'max-age=10,must-revalidate',
     'cache_expires': 10,
     'schema': dr_prosumer_schema,
@@ -328,7 +343,9 @@ curtailable_loads = {
     'description': '''\
 This model represents the curtailable load for each dr_prosuemr.
 
-The `prosumer_id` field relates the object to the `_id` field of the `dr_prosumer`. 
+- The `prosumer_id` field relates the object to the `_id` field of the `dr_prosumer`.
+- The `timestamp` field is the datetime that this load is scheduled, 
+
 ''',
     'cache_control': 'max-age=10,must-revalidate',
     'cache_expires': 10,
@@ -349,6 +366,15 @@ The `prosumer_id` field relates the object to the `_id` field of the `dr_prosume
 
 load_entries = {
     # We choose to override global cache-control directives for this resource.
+    'description': '''\
+This model represents the flexible load entries for each device and each EV and timestamp.
+
+- The `prosumer_id` field relates the object to the `_id` field of the `dr_prosumer`.
+- The `type` field can be either "shiftable_devices" or "EVs"
+- The `offset` field is the index in the corresponding array of the `dr_prosumer` object,
+- The `obj_name` field is the `name` field of the device or EV in the `dr_prosumer` object,
+- The `timestamp` field is the datetime that this load is scheduled,
+''',
     'cache_control': 'max-age=10,must-revalidate',
     'cache_expires': 10,
     'schema': load_entry_schema,
@@ -369,6 +395,14 @@ load_entries = {
 
 flex_request_data_points = {
     # We choose to override global cache-control directives for this resource.
+    'description': '''\
+This model represents the flexibility that is requested for each timestamp
+and each `flex_request` object.
+
+- The `flex_request_id` field relates the object to the `_id` field of the `flex_request`.
+- The `timestamp` field is the datetime that this load reduction is requested,
+
+''',
     'cache_control': 'max-age=10,must-revalidate',
     'cache_expires': 10,
     'schema': flex_request_data_point_schema,
@@ -388,6 +422,13 @@ flex_request_data_points = {
 
 flex_requests = {
     # We choose to override global cache-control directives for this resource.
+    'description': '''\
+This model represents the flexibility requests by the DSO.
+
+It is related to the `flex_request_data_points` schema, that contain the requested
+flexibility parameters that are associated with this `flex_request`, for each timestamp.
+
+''',
     'cache_control': 'max-age=10,must-revalidate',
     'cache_expires': 10,
     'schema': flex_request_schema,
