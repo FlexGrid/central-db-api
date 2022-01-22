@@ -180,28 +180,28 @@ app.config['SWAGGER_INFO'] = {
 #         }
 #     })
 
-# add_documentation(
-#     swagger, {
-#         'components': {
-#             'securitySchemes': {
-#                 'type': 'oauth2',
-#                 'flows': {
-#                     'authorizationCode': {
-#                         'authorizationUrl':
-#                         'https://example.com/oauth/authorize',
-#                         'tokenUrl':
-#                         'https://db.flexgrid-project.eu/oauth/token',
-#                         'scopes': {
-#                             'read': 'Grants read access',
-#                             'write': 'Grants write access',
-#                             'admin': 'Grants access to admin operations',
-#                         }
-#                     }
-#                 }
-#             }
-#         },
-#         'security': [{'oAuth2': ['read', 'write']}]
-#     })
+add_documentation(
+    swagger,
+    {
+        'components': {
+            'securitySchemes': {
+                'type': 'oauth2',
+                'flows': {
+                    #                     'authorizationCode': {
+                    #                         'authorizationUrl':
+                    #                         'https://example.com/oauth/authorize',
+                    'tokenUrl': 'https://db.flexgrid-project.eu/oauth/token',
+                    #                         'scopes': {
+                    #                             'read': 'Grants read access',
+                    #                             'write': 'Grants write access',
+                    #                             'admin': 'Grants access to admin operations',
+                    #                         }
+                    #                     }
+                }
+            }
+        },
+        # 'security': [{'oAuth2': ['read', 'write']}]
+    })
 # # iterate over all resources and items and add security
 # for resource, rd in app.config['DOMAIN'].items():
 #     if (rd.get('disable_documentation') or resource.endswith('_versions')):
