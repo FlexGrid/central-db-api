@@ -19,7 +19,7 @@ from oauth2 import BearerAuth
 from flask_sentinel import ResourceOwnerPasswordCredentials, oauth
 from eve_swagger import get_swagger_blueprint, add_documentation
 import redis
-from flask import request
+from flask import request, send_from_directory, render_template
 from eve.io.mongo.validation import Validator
 from datetime import datetime
 from pymongo import MongoClient
@@ -115,10 +115,21 @@ class MyValidator(Validator):
         pass
 
 
-app = Eve(auth=BearerAuth, validator=MyValidator)
+app = Eve(__name__, auth=BearerAuth, validator=MyValidator, static_url_path='')
 ResourceOwnerPasswordCredentials(app)
 
 print("Mongodb active")
+
+
+@app.route('/swagger/')
+def send_swagger():
+    return render_template('index.html', host=f"{request.url_root}api-docs")
+
+
+@app.route('/swagger/<path:path>')
+def send_swagger_assets(path):
+    print("the path is", path)
+    return send_from_directory('swagger', path)
 
 
 @app.route('/authorization/')
@@ -159,86 +170,26 @@ app.config['SWAGGER_INFO'] = {
     'schemes': ['https']
 }
 
-# app.config['SWAGGER_EXAMPLE_FIELD_REMOVE'] = True
-app.config['SWAGGER_HOST'] = 'https://db.flexgrid-project.eu/'
+app.config['SWAGGER_HOST'] = os.getenv("SWAGGER_HOST")
 
 # optional. Add/Update elements in the documentation at run-time without deleting subtrees.
-# add_documentation(
-#     swagger, {
-#         'paths': {
-#             '/data_points_aggr': {
-#                 'get': {
-#                     'parameters': [{
-#                         'in': 'query',
-#                         'name': 'aggregate',
-#                         'required': True,
-#                         'description':
-#                         'JSON with the values like this: `{"$start": "2017-07-11T19:05:00","$end":"2017-07-11T22:00:01", "$prosumer_ids": ["5ee8e1fc00871cbb09d9fdf8", "5ee8e0fa00871cbb09d9fdc0"], "$interval": 3600}`',
-#                         'type': 'string'
-#                     }]
-#                 }
-#             }
-#         }
-#     })
-
-# add_documentation(
-#    swagger,
-#    {
-#        'components': {
-#            'securitySchemes': {
-# 'type': 'oauth2',
-#              'oAuth2': { 'flows': {'password': {
-                    #                     'authorizationCode': {
-                    #                         'authorizationUrl':
-                    #                         'https://example.com/oauth/authorize',
-#                   'tokenUrl': 'https://db.flexgrid-project.eu/oauth/token',
-                    #                         'scopes': {
-                    #                             'read': 'Grants read access',
-                    #                             'write': 'Grants write access',
-                    #                             'admin': 'Grants access to admin operations',
-                    #                         }
-                    #                     }
-#                }}
-#                }
-#            }
-#        },
-        # 'security': [{'oAuth2': ['read', 'write']}]
-#    })
-# # iterate over all resources and items and add security
-# for resource, rd in app.config['DOMAIN'].items():
-#     if (rd.get('disable_documentation') or resource.endswith('_versions')):
-#         continue
-
-#     methods = rd['resource_methods']
-#     url = '/%s' % rd['url']
-#     for method in methods:
-#         add_documentation(swagger, {
-#             'paths': {
-#                 url: {
-#                     method.lower(): {
-#                         "security": [{
-#                             "oAuth2": ['read']
-#                         }]
-#                     }
-#                 }
-#             }
-#         })
-
-#     methods = rd['item_methods']
-#     item_id = '%sId' % rd['item_title'].lower()
-#     url = '/%s/{%s}' % (rd['url'], item_id)
-#     for method in methods:
-#         add_documentation(swagger, {
-#             'paths': {
-#                 url: {
-#                     method.lower(): {
-#                         "security": [{
-#                             "oAuth2": ['read']
-#                         }]
-#                     }
-#                 }
-#             }
-#         })
+add_documentation(
+    swagger, {
+        'paths': {
+            '/data_points_aggr': {
+                'get': {
+                    'parameters': [{
+                        'in': 'query',
+                        'name': 'aggregate',
+                        'required': True,
+                        'description':
+                        'JSON with the values like this: `{"$start": "2017-07-11T19:05:00","$end":"2017-07-11T22:00:01", "$prosumer_ids": ["5ee8e1fc00871cbb09d9fdf8", "5ee8e0fa00871cbb09d9fdc0"], "$interval": 3600}`',
+                        'type': 'string'
+                    }]
+                }
+            }
+        }
+    })
 
 if __name__ == '__main__':
     app.run()

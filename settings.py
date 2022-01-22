@@ -149,9 +149,6 @@ dp_schema = {
     'time_stamp': {
         'type': 'string',
     },
-    '_id': {
-        'type': 'string',
-    },
     'prosumer_id': {
         'type': 'string',
     },
@@ -408,21 +405,21 @@ flex_requests = {
 
 data_points_aggr = {
     'schema': {
-        "_id": {
-            'type': 'object',
-            'schema': {
-                "prosumer_id": {
-                    'example': "5ee8e0fa00871cbb09d9fdc0",
-                    'type': 'string',
-                    'minlength': 1,
-                },
-                "date": {
-                    'example': "2017-07-11T20:00:00",
-                    'type': 'string',
-                    'minlength': 1,
-                }
-            }
-        },
+        # "_id": {
+        #     'type': 'object',
+        #     'schema': {
+        #         "prosumer_id": {
+        #             'example': "5ee8e0fa00871cbb09d9fdc0",
+        #             'type': 'string',
+        #             'minlength': 1,
+        #         },
+        #         "date": {
+        #             'example': "2017-07-11T20:00:00",
+        #             'type': 'string',
+        #             'minlength': 1,
+        #         }
+        #     }
+        # },
         "acpower_kw_aggr": {
             'example': '7.25',
             'type': 'number',
