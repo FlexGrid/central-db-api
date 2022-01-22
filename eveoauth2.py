@@ -184,7 +184,21 @@ add_documentation(
                         'required': True,
                         'description':
                         'JSON with the values like this: `{"$start": "2017-07-11T19:05:00","$end":"2017-07-11T22:00:01", "$prosumer_ids": ["5ee8e1fc00871cbb09d9fdf8", "5ee8e0fa00871cbb09d9fdc0"], "$interval": 3600}`',
-                        'type': 'string'
+                        'schema': {
+                            'type': 'string',
+                            'example': {
+                                '$start':
+                                "2017-07-11T19:05:00",
+                                "$end":
+                                "2017-07-11T22:00:01",
+                                "$prosumer_ids": [
+                                    "5ee8e1fc00871cbb09d9fdf8",
+                                    "5ee8e0fa00871cbb09d9fdc0"
+                                ],
+                                "$interval":
+                                3600
+                            }
+                        }
                     }]
                 }
             }
