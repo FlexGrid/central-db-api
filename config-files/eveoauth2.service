@@ -1,6 +1,6 @@
 [Unit]
 Description=uWSGI instance to serve eveoauth2
-After=network.target
+After=network.target mongodb.service nginx.service redis-server.service
 
 [Service]
 User=dss

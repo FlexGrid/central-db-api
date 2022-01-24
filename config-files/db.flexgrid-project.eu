@@ -7,41 +7,42 @@ server {
 #    }
 
 
-    location /swagger/ {
-        autoindex on;
-        root /home/dss/flexgrid/eve-oauth2/;
-        proxy_cache_bypass $http_secret_header;
+#    location /swagger/ {
+#        autoindex on;
+#        root /home/dss/flexgrid/eve-oauth2/;
+#        proxy_cache_bypass $http_secret_header;
 
-    }
+#    }
 
     location / {
-  #    if ($request_method = 'OPTIONS') {
-  #      add_header 'Access-Control-Allow-Origin' 'https://editor.swagger.io';
-  #      add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
-  #      #
-  #      # Custom headers and headers various browsers *should* be OK with but aren't
-  #      #
-  #      add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization';
-  #      #
-  #      # Tell client that this pre-flight info is valid for 20 days
-  #      #
-  #      add_header 'Access-Control-Max-Age' 1728000;
-  #      add_header 'Content-Type' 'text/plain; charset=utf-8';
-  #      add_header 'Content-Length' 0;
-  #      return 204;
-  #    }
-  #    if ($request_method = 'POST') {
-  #      add_header 'Access-Control-Allow-Origin' 'https://editor.swagger.io';
-  #      add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
-  #      add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization';
-  #      add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range';
-  #    }
-  #    if ($request_method = 'GET') {
-  #      add_header 'Access-Control-Allow-Origin' 'https://editor.swagger.io';
-  #      add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
-  #      add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization';
-  #      add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range';
-  #    }
+      set $domain https://pricing-api.flexgrid-project.eu;
+      if ($request_method = 'OPTIONS') {
+        add_header 'Access-Control-Allow-Origin' $domain;
+        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+        #
+        # Custom headers and headers various browsers *should* be OK with but aren't
+        #
+        add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization';
+        #
+        # Tell client that this pre-flight info is valid for 20 days
+        #
+        add_header 'Access-Control-Max-Age' 1728000;
+        add_header 'Content-Type' 'text/plain; charset=utf-8';
+        add_header 'Content-Length' 0;
+        return 204;
+      }
+      if ($request_method = 'POST') {
+        add_header 'Access-Control-Allow-Origin' $domain;
+        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+        add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization';
+        add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range';
+      }
+      if ($request_method = 'GET') {
+        add_header 'Access-Control-Allow-Origin' $domain;
+        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+        add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization';
+        add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range';
+      }
 
       include uwsgi_params;
       uwsgi_pass unix:/home/dss/flexgrid/eve-oauth2/eveoauth2.sock;
