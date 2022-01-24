@@ -55,7 +55,7 @@ class BearerAuth(BasicAuth):
                 'load_entries',
                 'flex_requests',
                 'flex_request_data_points',
-        ]:
+        ] and method == 'GET':
             return token and user
         elif resource == 'atp':
             return token and method == 'post' and user == b'5e95ba9d85575d046d807d0e'
