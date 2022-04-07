@@ -5,8 +5,7 @@ import datetime
 import sys
 import re
 
-dt_initial = datetime.datetime(2021, 11, 11, 0, 0)
-max_days = 10
+dt = datetime.datetime(2021, 11, 11, 0, 0)
 
 nshift_per_user_data = pandas.read_excel("./BRTP Input.xlsx",
                                          sheet_name='Shiftable Devices',
@@ -114,76 +113,72 @@ for flexibility_level in ['Low', 'Medium', 'High']:
             'EVs': []
         }
 
-        for days in range (max_days):
-            dt = dt_initial +  datetime.timedelta(days=days)
-            for t in range(
-                    1,
-                    int(desired_x_data.count(axis='columns')[f"user={user_id}"]) +
-                    1):
-                load_enrty = {
-                    'timestamp':
-                    (dt + datetime.timedelta(hours=t -
-                                            1)).strftime('%Y-%m-%dT%H:%M:%SZ'),
-                    'desired_consumption_kw':
-                    float(desired_x_data[f"t={t}"][f"user={user_id}"]),
-                    'base_load_kw':
-                    float(baseload_data[f"t={t}"][f"user={user_id}"]),
-                    'flexibility': [],
-                    'prosumer_id':
-                    prosumer['name'],
-                }
+        for t in range(
+                1,
+                int(desired_x_data.count(axis='columns')[f"user={user_id}"]) +
+                1):
+            load_enrty = {
+                'timestamp':
+                (dt + datetime.timedelta(hours=t -
+                                         1)).strftime('%Y-%m-%dT%H:%M:%SZ'),
+                'desired_consumption_kw':
+                float(desired_x_data[f"t={t}"][f"user={user_id}"]),
+                'base_load_kw':
+                float(baseload_data[f"t={t}"][f"user={user_id}"]),
+                'flexibility': [],
+                'prosumer_id':
+                prosumer['name'],
+            }
 
-                user = None
-                for (u, step), rv in curtailable_bids_data.iterrows():
-                    if (int(u) > 0):
-                        user = u
-                    if user == user_id:
-                        price_euro_per_kw = float(rv[(f"t={t}", "Price")])
-                        quantity_kw = float(rv[(f"t={t}", "Quantity")])
-                        # if (price_euro_per_kw > 0 or quantity_kw > 0):
-                        load_enrty['flexibility'] += [{
-                            'price_euro_per_kw': price_euro_per_kw,
-                            'quantity_kw': quantity_kw,
-                        }]
-                # prosumer['curtailable_load'] += [load_enrty]
-                curtailable_load_schema += [load_enrty]
+            user = None
+            for (u, step), rv in curtailable_bids_data.iterrows():
+                if (int(u) > 0):
+                    user = u
+                if user == user_id:
+                    price_euro_per_kw = float(rv[(f"t={t}", "Price")])
+                    quantity_kw = float(rv[(f"t={t}", "Quantity")])
+                    # if (price_euro_per_kw > 0 or quantity_kw > 0):
+                    load_enrty['flexibility'] += [{
+                        'price_euro_per_kw': price_euro_per_kw,
+                        'quantity_kw': quantity_kw,
+                    }]
+            # prosumer['curtailable_load'] += [load_enrty]
+            curtailable_load_schema += [load_enrty]
 
         for device_id in range(1, int(rowvalue['Number Of Devices']) + 1):
             device = {'name': f'device_{device_id}'}
-            for days in range (max_days):
-                dt = dt_initial +  datetime.timedelta(days=days)
-                for t in range(
-                        1,
-                        int(
-                            nshift_cons_data.count(
-                                axis='columns')[(f"user={user_id}", device_id)]) +
-                        1):
-                    kw = float(nshift_cons_data[f"t={t}"][(f"user={user_id}",
-                                                        device_id)])
-                    if kw > 0:
-                        load_entry = {
-                            'timestamp': (dt + datetime.timedelta(hours=t - 1)
-                                        ).strftime('%Y-%m-%dT%H:%M:%SZ'),
-                            'kw':
-                            kw,
-                            'price_euro_per_kw':
-                            delta_shifts_data[f"User {user_id}"]
-                            [f"Device {device_id}"],
-                            'deadline':
-                            (dt +
-                            datetime.timedelta(hours=float(deadlines_shifts_data[
-                                f"User {user_id}"][f"Device {device_id}"]) -
-                                                1)).strftime('%Y-%m-%dT%H:%M:%SZ'),
-                            "prosumer_id":
-                            prosumer["name"],
-                            "obj_name":
-                            device['name'],
-                            "type":
-                            "shiftable_devices",
-                            "offset":
-                            device_id - 1,
-                        }
-                        load_entry_schema += [load_entry]
+            for t in range(
+                    1,
+                    int(
+                        nshift_cons_data.count(
+                            axis='columns')[(f"user={user_id}", device_id)]) +
+                    1):
+                kw = float(nshift_cons_data[f"t={t}"][(f"user={user_id}",
+                                                       device_id)])
+                if kw > 0:
+                    load_entry = {
+                        'timestamp': (dt + datetime.timedelta(hours=t - 1)
+                                      ).strftime('%Y-%m-%dT%H:%M:%SZ'),
+                        'kw':
+                        kw,
+                        'price_euro_per_kw':
+                        delta_shifts_data[f"User {user_id}"]
+                        [f"Device {device_id}"],
+                        'deadline':
+                        (dt +
+                         datetime.timedelta(hours=float(deadlines_shifts_data[
+                             f"User {user_id}"][f"Device {device_id}"]) -
+                                            1)).strftime('%Y-%m-%dT%H:%M:%SZ'),
+                        "prosumer_id":
+                        prosumer["name"],
+                        "obj_name":
+                        device['name'],
+                        "type":
+                        "shiftable_devices",
+                        "offset":
+                        device_id - 1,
+                    }
+                    load_entry_schema += [load_entry]
             prosumer['shiftable_devices'] += [device]
 
         for ev_id in range(1, int(nevs_per_user_data['EVs'][user_id]) + 1):
@@ -193,37 +188,35 @@ for flexibility_level in ['Low', 'Medium', 'High']:
                 float(nevs_per_user_data['Charge Limit'][user_id]),
             }
 
-            for days in range (max_days):
-                dt = dt_initial +  datetime.timedelta(days=days)
-                for t in range(
-                        1,
-                        int(
-                            nevs_cons_data.count(
-                                axis='columns')[(f"user={user_id}", ev_id)]) + 1):
-                    kw = float(nevs_cons_data[f"t={t}"][(f"user={user_id}",
-                                                        ev_id)])
-                    if kw > 0:
-                        load_entry = {
-                            'timestamp': (dt + datetime.timedelta(hours=t - 1)
-                                        ).strftime('%Y-%m-%dT%H:%M:%SZ'),
-                            'kw':
-                            kw,
-                            'deadline': (dt + datetime.timedelta(
-                                hours=float(deadlines_evs_data[f"User {user_id}"]
-                                            [f"Device {ev_id}"]) -
-                                1)).strftime('%Y-%m-%dT%H:%M:%SZ'),
-                            'price_euro_per_kw':
-                            delta_evs_data[f"User {user_id}"][f"Device {ev_id}"],
-                            "prosumer_id":
-                            prosumer["name"],
-                            "obj_name":
-                            ev['name'],
-                            "type":
-                            "EVs",
-                            "offset":
-                            ev_id - 1,
-                        }
-                        load_entry_schema += [load_entry]
+            for t in range(
+                    1,
+                    int(
+                        nevs_cons_data.count(
+                            axis='columns')[(f"user={user_id}", ev_id)]) + 1):
+                kw = float(nevs_cons_data[f"t={t}"][(f"user={user_id}",
+                                                     ev_id)])
+                if kw > 0:
+                    load_entry = {
+                        'timestamp': (dt + datetime.timedelta(hours=t - 1)
+                                      ).strftime('%Y-%m-%dT%H:%M:%SZ'),
+                        'kw':
+                        kw,
+                        'deadline': (dt + datetime.timedelta(
+                            hours=float(deadlines_evs_data[f"User {user_id}"]
+                                        [f"Device {ev_id}"]) -
+                            1)).strftime('%Y-%m-%dT%H:%M:%SZ'),
+                        'price_euro_per_kw':
+                        delta_evs_data[f"User {user_id}"][f"Device {ev_id}"],
+                        "prosumer_id":
+                        prosumer["name"],
+                        "obj_name":
+                        ev['name'],
+                        "type":
+                        "EVs",
+                        "offset":
+                        ev_id - 1,
+                    }
+                    load_entry_schema += [load_entry]
 
             prosumer['EVs'] += [ev]
         dr_prosumer_schema += [prosumer]
@@ -234,28 +227,26 @@ for flexibility_level in ['Low', 'Medium', 'High']:
         "flexibility_level": flexibility_level,
     }]
 
-    for days in range (max_days):
-        dt = dt_initial +  datetime.timedelta(days=days)
-        for t in range(1, int(rv.count() / 2 + 1)):
+    for t in range(1, int(rv.count() / 2 + 1)):
 
-            entries = []
-            for step, rv in flex_request_data.iterrows():
+        entries = []
+        for step, rv in flex_request_data.iterrows():
 
-                # print(step, float(rv[f"t={t}"]["Price"]))
-                entries += [{
-                    'price_euro_per_kw': float(rv[f"t={t}"]["Price"]),
-                    'quantity_kw': float(rv[f"t={t}"]["Quantity"]),
-                }]
-
-            flex_request_data_point_schema += [{
-                'flex_request_id':
-                flex_request_name,
-                'timestamp':
-                (dt +
-                datetime.timedelta(hours=t - 1)).strftime('%Y-%m-%dT%H:%M:%SZ'),
-                'flexibility':
-                entries,
+            # print(step, float(rv[f"t={t}"]["Price"]))
+            entries += [{
+                'price_euro_per_kw': float(rv[f"t={t}"]["Price"]),
+                'quantity_kw': float(rv[f"t={t}"]["Quantity"]),
             }]
+
+        flex_request_data_point_schema += [{
+            'flex_request_id':
+            flex_request_name,
+            'timestamp':
+            (dt +
+             datetime.timedelta(hours=t - 1)).strftime('%Y-%m-%dT%H:%M:%SZ'),
+            'flexibility':
+            entries,
+        }]
 
     # print(json.dumps(flex_request_data_point_schema, indent=4, sort_keys=True))
     # sys.exit()
