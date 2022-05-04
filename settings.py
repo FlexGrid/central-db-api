@@ -1,8 +1,10 @@
+from bson import ObjectId
 import os
 from datetime import datetime
 from dotenv import load_dotenv
 load_dotenv(verbose=True)
-from bson import ObjectId
+
+MONGO_QUERY_BLACKLIST = ['$where']
 
 prosumer_schema = {}
 
@@ -19,6 +21,14 @@ flexibility_schema = {
             'quantity_kw': {
                 'type': 'float',
                 'required': True,
+            },
+            'direction': {
+                'type': 'string',
+                'is_valid_direction': True,
+                # 'enum': ['Down', 'Up']
+            },
+            'minquantity': {
+                'type': 'float',
             },
         }
     }
@@ -40,6 +50,23 @@ flex_request_data_point_schema = {
     'flexibility': flexibility_schema,
 }
 
+flex_offer_data_point_schema = {
+    'flex_offer_id': {
+        'type': 'objectid',
+        'is_valid_object': True,
+        'required': True,
+        'example': "61e555ae85575d81d075c90f",
+    },
+    'timestamp': {
+        'type': 'string',
+        'is_iso_8601': True,
+        'required': True,
+        'example': "2021-11-11T00:00:00Z",
+    },
+    'flexibility': flexibility_schema,
+}
+
+
 flex_request_schema = {
     'name': {
         'type': 'string',
@@ -48,8 +75,47 @@ flex_request_schema = {
         "allowed": ["Low", "Medium", "High"],
         "required": True
     },
+    'location': {
+        'type': 'dict',
+        'schema': {
+            'name': {
+                'type': 'string',
+            }
+        }
+    },
+    'time_granurality_sec': {
+        'type': 'number',
+        "allowed": [900, 1800, 3600],
+    }
+
 }
 
+flex_offer_schema = {
+    'name': {
+        'type': 'string',
+    },
+    'country': {
+        'type': 'string',
+    },
+    'location': {
+        'type': 'dict',
+        'schema': {
+            'name': {
+                'type': 'string',
+            },
+            'x': {
+                'type': 'number',
+            },
+            'y': {
+                'type': 'number',
+            }
+        }
+    },
+    'time_granurality_sec': {
+        'type': 'number',
+        "allowed": [900, 1800, 3600],
+    }
+}
 curtailable_load_schema = {
     'prosumer_id': {
         'type': 'objectid',
@@ -385,7 +451,7 @@ This model represents the flexible load entries for each device and each EV and 
         'uniqness': ([('prosumer_id', 1), ('timestamp', 1), ("type", 1),
                       ("offset", 1)], {
                           "unique": True
-                      }),
+        }),
         'prosumer_id': [('prosumer_id', 1)],
         'timestamp': [('timestamp', 1)],
         'type': [('type', 1)],
@@ -415,10 +481,38 @@ and each `flex_request` object.
         ], {
             "unique": True
         }),
-        'flex_request_id': [('prosumer_id', 1)],
+        'flex_request_id': [('flex_request_id', 1)],
         'timestamp': [('timestamp', 1)],
     },
 }
+
+flex_offer_data_points = {
+    # We choose to override global cache-control directives for this resource.
+    'description': '''\
+This model represents the flexibility that is offered for each timestamp
+and each `flex_offer` object.
+
+- The `flex_offer_id` field relates the object to the `_id` field of the `flex_offer`.
+- The `timestamp` field is the datetime that this load reduction is offered,
+
+''',
+    'cache_control': 'max-age=10,must-revalidate',
+    'cache_expires': 10,
+    'schema': flex_offer_data_point_schema,
+    'resource_methods': ['GET', 'POST'],
+    'item_methods': ['GET', 'PATCH', 'PUT', 'DELETE'],
+    'mongo_indexes': {
+        'uniqness': ([
+            ('flex_offer_id', 1),
+            ('timestamp', 1),
+        ], {
+            "unique": True
+        }),
+        'flex_offer_id': [('flex_offer_id', 1)],
+        'timestamp': [('timestamp', 1)],
+    },
+}
+
 
 flex_requests = {
     # We choose to override global cache-control directives for this resource.
@@ -432,6 +526,31 @@ flexibility parameters that are associated with this `flex_request`, for each ti
     'cache_control': 'max-age=10,must-revalidate',
     'cache_expires': 10,
     'schema': flex_request_schema,
+    'resource_methods': ['GET', 'POST'],
+    'item_methods': ['GET', 'PATCH', 'PUT', 'DELETE'],
+    'mongo_indexes': {
+        'name_index': ([('name', 1)], {
+            "unique": True
+        }),
+        #     'curt_index': [('curtailable_load.timestamp', 1)],
+        #     'shift_index': [('shiftable_devices.load_entries.timestamp', 1)],
+        #     'ev_index': [('EVs.load_entries.timestamp', 1)],
+    },
+}
+
+
+flex_offers = {
+    # We choose to override global cache-control directives for this resource.
+    'description': '''\
+This model represents the flexibility offers by the prosumers.
+
+It is related to the `flex_offer_data_points` schema, that contain the requested
+flexibility parameters that are associated with this `flex_offer`, for each timestamp.
+
+''',
+    'cache_control': 'max-age=10,must-revalidate',
+    'cache_expires': 10,
+    'schema': flex_offer_schema,
     'resource_methods': ['GET', 'POST'],
     'item_methods': ['GET', 'PATCH', 'PUT', 'DELETE'],
     'mongo_indexes': {
@@ -768,12 +887,12 @@ data_points_aggr = {
                                                 },
                                             ],
                                         }, {
-                                                     "$subtract": [{
-                                                         "$multiply": [
-                                                             1000, "$interval"
-                                                         ]
-                                                     }, 1]
-                                                 }],
+                                            "$subtract": [{
+                                                "$multiply": [
+                                                    1000, "$interval"
+                                                ]
+                                            }, 1]
+                                        }],
                                     },
                                 },
                             },
@@ -799,6 +918,8 @@ DOMAIN = {
     'load_entries': load_entries,
     'flex_requests': flex_requests,
     'flex_request_data_points': flex_request_data_points,
+    'flex_offers': flex_offers,
+    'flex_offer_data_points': flex_offer_data_points,
     'data_points': data_points,
     'data_points_aggr': data_points_aggr,
     'prosumers': prosumers,
@@ -873,6 +994,6 @@ SENTINEL_MANAGEMENT_PASSWORD = os.getenv("SENTINEL_MANAGEMENT_PASSWORD")
 #OAUTH2_PROVIDER_TOKEN_EXPIRES_IN = 3600
 
 # You can also configure the error page uri with an endpoint name.
-#OAUTH2_PROVIDER_ERROR_ENDPOINT =
+# OAUTH2_PROVIDER_ERROR_ENDPOINT =
 
 PAGINATION_LIMIT = 10000

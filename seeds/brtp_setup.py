@@ -60,6 +60,13 @@ load_entry_schema = []
 flex_request_schema = []
 flex_request_data_point_schema = []
 flex_id = 1
+
+flex_request_locations = {
+    'Low': 'Thessaloniki',
+    'Medium': 'Athens',
+    'High': 'Greece'
+}
+
 for flexibility_level in ['Low', 'Medium', 'High']:
     deadlines_shifts_data = pandas.read_excel(
         "./BRTP Input.xlsx",
@@ -168,7 +175,7 @@ for flexibility_level in ['Low', 'Medium', 'High']:
                         (dt +
                          datetime.timedelta(hours=float(deadlines_shifts_data[
                              f"User {user_id}"][f"Device {device_id}"]) -
-                                            1)).strftime('%Y-%m-%dT%H:%M:%SZ'),
+                             1)).strftime('%Y-%m-%dT%H:%M:%SZ'),
                         "prosumer_id":
                         prosumer["name"],
                         "obj_name":
@@ -225,6 +232,20 @@ for flexibility_level in ['Low', 'Medium', 'High']:
     flex_request_schema += [{
         'name': flex_request_name,
         "flexibility_level": flexibility_level,
+    }, {
+        'name': f'{flex_request_name}_Large_Up',
+        "flexibility_level": flexibility_level,
+        'location': {
+            'name': flex_request_locations[flexibility_level]
+        },
+        'time_granurality_sec': 1800,
+    }, {
+        'name': f'{flex_request_name}_Large_Down',
+        "flexibility_level": flexibility_level,
+        'location': {
+            'name': flex_request_locations[flexibility_level],
+        },
+        'time_granurality_sec': 1800,
     }]
 
     for t in range(1, int(rv.count() / 2 + 1)):
@@ -241,6 +262,62 @@ for flexibility_level in ['Low', 'Medium', 'High']:
         flex_request_data_point_schema += [{
             'flex_request_id':
             flex_request_name,
+            'timestamp':
+            (dt +
+             datetime.timedelta(hours=t - 1)).strftime('%Y-%m-%dT%H:%M:%SZ'),
+            'flexibility':
+            entries,
+        }]
+
+        entries = []
+        for step, rv in flex_request_data.iterrows():
+
+            # print(step, float(rv[f"t={t}"]["Price"]))
+            entries += [{
+                'price_euro_per_kw': float(rv[f"t={t}"]["Price"]),
+                'quantity_kw': 10000 * float(rv[f"t={t}"]["Quantity"]),
+                'direction': 'Up',
+            }]
+
+        flex_request_data_point_schema += [{
+            'flex_request_id':
+            f'{flex_request_name}_Large_Up',
+            'timestamp':
+            (dt +
+             datetime.timedelta(hours=t - 1)).strftime('%Y-%m-%dT%H:%M:%SZ'),
+            'flexibility':
+            entries,
+        }, {
+            'flex_request_id':
+            f'{flex_request_name}_Large_Up',
+            'timestamp':
+            (dt +
+             datetime.timedelta(hours=t - 1, minutes=30)).strftime('%Y-%m-%dT%H:%M:%SZ'),
+            'flexibility':
+            entries,
+        }]
+
+        entries = []
+        for step, rv in flex_request_data.iterrows():
+
+            # print(step, float(rv[f"t={t}"]["Price"]))
+            entries += [{
+                'price_euro_per_kw': float(rv[f"t={t}"]["Price"]),
+                'quantity_kw': 10000 * float(rv[f"t={t}"]["Quantity"]),
+                'direction': 'Down',
+            }]
+
+        flex_request_data_point_schema += [{
+            'flex_request_id':
+            f'{flex_request_name}_Large_Down',
+            'timestamp':
+            (dt +
+             datetime.timedelta(hours=t - 1, minutes=30)).strftime('%Y-%m-%dT%H:%M:%SZ'),
+            'flexibility':
+            entries,
+        }, {
+            'flex_request_id':
+            f'{flex_request_name}_Large_Down',
             'timestamp':
             (dt +
              datetime.timedelta(hours=t - 1)).strftime('%Y-%m-%dT%H:%M:%SZ'),

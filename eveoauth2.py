@@ -14,6 +14,7 @@
     :copyright: (c) 2015 by Nicola Iarocci.
     :license: BSD, see LICENSE for more details.
 """
+from bson.objectid import ObjectId
 from eve import Eve
 from oauth2 import BearerAuth
 from flask_sentinel import ResourceOwnerPasswordCredentials, oauth
@@ -29,7 +30,6 @@ from dotenv import load_dotenv
 load_dotenv(verbose=True)
 
 # importing ObjectId from bson library
-from bson.objectid import ObjectId
 
 client1 = MongoClient(os.getenv("MONGO_URI"), serverSelectionTimeoutMS=3)
 client1.admin.command('ismaster')
@@ -97,12 +97,27 @@ class MyValidator(Validator):
                 collection = 'dr_prosumers'
             elif field == "flex_request_id":
                 collection = 'flex_requests'
+            elif field == "flex_offer_id":
+                collection = 'flex_offers'
 
             obj = client1['flexgrid_main'][collection].find_one(obj_id)
 
             if obj is None:
                 print(field)
-                self._error(field, f"Prosumer with id {obj_id} not found")
+                self._error(field, f"{collection} with id {obj_id} not found")
+
+    def _validate_is_valid_direction(self, constraint, field, value):
+        """ Test that it is a valid direction.
+
+        Valid directions are 'Up' and 'Down'
+
+        The rule's arguments are validated against this schema:
+        {'type': 'boolean'}
+        """
+        if constraint is True:
+
+            if value not in ['Up', 'Down']:
+                self._error(field, "direction must be 'Up' or 'Down'")
 
     def _validate_description(self, description, field, value):
         """ {'type': 'string'} """

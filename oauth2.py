@@ -16,13 +16,13 @@ from flask import request
 from redis import StrictRedis
 import redis
 import os
-from flask import g
 
 
 class BearerAuth(BasicAuth):
     """ Overrides Eve's built-in basic authorization scheme and uses Redis to
     validate bearer token
     """
+
     def __init__(self):
         super(BearerAuth, self).__init__()
         self.redis = StrictRedis()
@@ -47,18 +47,23 @@ class BearerAuth(BasicAuth):
             f"We got: token={token}, allowed_roles={allowed_roles}, resource={resource}, method={method}, user={user}"
         )
         if resource in [
-                'prosumers',
-                'data_points',
-                'data_points_aggr',
-                'dr_prosumers',
-                'curtailable_loads',
-                'load_entries',
-                'flex_requests',
-                'flex_request_data_points',
+            'prosumers',
+            'data_points',
+            'data_points_aggr',
         ] and method == 'GET':
             return token and user
+        elif resource in [
+            'dr_prosumers',
+            'curtailable_loads',
+            'load_entries',
+            'flex_requests',
+            'flex_request_data_points',
+            'flex_offers',
+            'flex_offer_data_points',
+        ]:
+            return token and user
         elif resource == 'atp':
-            return token and method == 'post' and user == b'5e95ba9d85575d046d807d0e'
+            return token and method == 'post' and user  # == b'5e95ba9d85575d046d807d0e'
 
     def authorized(self, allowed_roles, resource, method):
         """ Validates the the current request is allowed to pass through.
